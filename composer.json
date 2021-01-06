@@ -1,0 +1,25 @@
+{
+    "name": "dvaknheo/libcoverage",
+    "description": "coverage for library",
+    "type": "library",
+    "keywords": [
+        "unittest"
+    ],
+    "homepage": "https://www.github.com/dvaknheo/libcoverage",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "davknheo",
+            "email": "85811616@qq.com"
+        }
+    ],
+	"autoload": {
+        "psr-4": {
+            "LibCoverage\\": "src"
+        }
+    },
+    "require": {
+        "php": ">=7.2.0",
+        "phpunit/php-code-coverage": "8.0.2"
+	}
+}

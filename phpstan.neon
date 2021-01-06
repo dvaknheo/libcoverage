@@ -1,0 +1,17 @@
+parameters:
+    # Needed only when you use "rules" block below
+    level: 8
+    checkMissingIterableValueType: false
+    ### inferPrivatePropertyTypeFromConstructor: false
+    paths:
+        - src
+
+    # Sometimes needed
+    bootstrapFiles:
+        - src/LibCoverage.php
+    ignoreErrors:
+        - '#Unsafe usage of new static#'
+        - '#no return typehint specified#'
+        - '#with no typehint specified#'
+        - '#has no typehint specified#'
+    # Prevents scanning given folders/files
