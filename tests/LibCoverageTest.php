@@ -8,7 +8,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
     public function testAll()
     {
         $old = LibCoverage::G();
-        $pwd = getcwd();
+        $pwd = getcwd(); // chdir 没搞懂
         LibCoverage::Begin(LibCoverage::class);
         ////[[[[
         $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
@@ -34,14 +34,16 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageEx::G()->addExtFile('t');
         
         ////]]]]
-        chdir($pwd);
+        chdir($pwd); // chdir 没搞懂
+        LibCoverageEx::G(new LibCoverageEx)->init($old->options)->createReportTest(); //这个想测 include 那段，没成
+        
         LibCoverage::G($old);
         LibCoverage::End();
         
     }
 }
 class SingletonExObject
-{    
+{
     public static function CreateObject($class, $object)
     {
         static $_instance;
@@ -53,6 +55,10 @@ class SingletonExObject
 }
 class LibCoverageEx extends LibCoverage
 {
+    public function createReportTest()
+    {
+        return $this->createReport();
+    }
     public static function makeData($path)
     {
 $str=<<<EOT
@@ -67,7 +73,7 @@ EOT;
         file_put_contents($path.'composer.json',$str);
 $str=<<<EOT
 <?php
-namespace MyProject
+namespace MyProject;
 
 class App
 {
@@ -97,7 +103,7 @@ EOT;
         rmdir($this->options['path_dump']);
         rmdir($this->options['path_report']);
         $this->createProject();
-        $this->createTestFiles();
+        $this->createProject();
         
         //exit;
         $this->cleanDirectory($this->options['path']);

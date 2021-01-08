@@ -118,8 +118,9 @@ class LibCoverage
         $iterator = new \RecursiveIteratorIterator($directory);
         $files = \iterator_to_array($iterator, false);
         foreach ($files as $file) {
-            $t = @include $file;
-            $coverage->merge($t);
+            // 要重复两遍才能 100% ，所以 ignore 得了
+            $t = @include $file;    //@codeCoverageIgnore
+            $coverage->merge($t);   //@codeCoverageIgnore
         }
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
@@ -191,7 +192,7 @@ class LibCoverage
     {
         $data = $this->createReport();
         echo "\nSTART CREATE REPORT AT " .DATE(DATE_ATOM)."\n";
-        echo "Output File:\nfile://".$this->getComponenetPathByKey('path_report')."index.html" ."\n";
+        echo "Output File:\n\n\033[42;30mfile://".$this->getComponenetPathByKey('path_report')."index.html" ."\033[0m\n";
         echo "\n\033[42;30m All Done \033[0m Test Done!";
         echo "\nTest Lines: \033[42;30m{$data['lines_tested']}/{$data['lines_total']}({$data['lines_percent']})\033[0m\n";
         echo "\n\n";
@@ -316,7 +317,6 @@ EOT;
     public function createProject()
     {
         $source = realpath(__DIR__.'/../').'/';
-        $dest = $this->options['path'].'/';
         
         if (!is_dir($this->options['path_dump'])) {
             @mkdir($this->options['path_dump']);
@@ -331,16 +331,31 @@ EOT;
             @mkdir($this->options['path_data']);
         }
         
-        if (!file_exists($dest.'tests/bootstrap.php')) {
-            copy($source.'tests/bootstrap.php', $dest.'tests/bootstrap.php');
+        
+        $dest = $this->getComponenetPathByKey('path_test');
+        $path = $this->options['path'];
+        
+        if (!file_exists($dest.'bootstrap.php')) {
+            echo "Copy test boostrap file:  '{$dest}support.php' \n";
+            copy($source.'tests/bootstrap.php', $dest.'bootstrap.php');
+        } else {
+            echo "Skip exists test boostrap file:  '{$dest}bootstrap.php' \n";
         }
-        if (!file_exists($dest.'tests/support.php')) {
-            copy($source.'tests/support.php', $dest.'tests/support.php');
+        if (!file_exists($dest.'support.php')) {
+            echo "Copy test support file:  '{$dest}support.php' \n";
+            copy($source.'tests/support.php', $dest.'support.php');
+        } else {
+            echo "Skip exists test support file:  '{$dest}support.php' \n";
         }
-        if (!file_exists($dest.'phpunit.xml')) {
+        
+        
+        if (!file_exists('phpunit.xml')) {
+            echo "Copy {$path}phpunit.xml \n";
             $data = file_get_contents($source.'phpunit.xml');
             $data = str_replace('LibCoverage', (string)$this->options['namespace'], (string)$data);
-            file_put_contents($dest.'phpunit.xml', $dest.'phpunit.xml');
+            file_put_contents($path.'phpunit.xml', $data);
+        } else {
+            echo "skip {$path}phpunit.xml \n";
         }
         $this->createTestFiles();
     }

@@ -1,6 +1,10 @@
 <?php
-require __DIR__ . '/../src/LibCoverage.php';
-//require __DIR__ . '/../vendor/autoload.php';
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../src/LibCoverage.php'] as $file) {
+    if (file_exists($file)) {
+        require $file;
+        break;
+    }
+}
 
 $c_args=[
     '--coverage-clover',
