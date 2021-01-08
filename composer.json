@@ -3,7 +3,9 @@
     "description": "coverage for library",
     "type": "library",
     "keywords": [
-        "unittest"
+        "coverage",
+        "testing",
+        "xunit"
     ],
     "homepage": "https://www.github.com/dvaknheo/libcoverage",
     "license": "MIT",
@@ -18,8 +20,10 @@
             "LibCoverage\\": "src"
         }
     },
+    "bin": [
+        "bin/libcoverage"
+    ],
     "require": {
-        "php": ">=7.2.0",
-        "phpunit/php-code-coverage": "8.0.2"
+        "php": ">=7.2.0"
 	}
 }

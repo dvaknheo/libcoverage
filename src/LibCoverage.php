@@ -14,12 +14,13 @@ class LibCoverage
 {
     public $options = [
         'namespace' => null,
-        'auto_detect_namespace' => true,
         'path' => null,
         'path_src' => 'src',
         'path_dump' => 'test_coveragedumps',
         'path_report' => 'test_reports',
+        'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
+        'auto_detect_namespace' => true,
     ];
     public $is_inited = true;
     
@@ -45,30 +46,24 @@ class LibCoverage
     {
         return static::G()->doEnd();
     }
-    /////
-    public static function CreateTestFiles($source, $dest)
-    {
-        static::G()->doCreateTestFiles($source, $dest);
-    }
-    
     ////////
 
     public function init(array $options, ?object $context = null)
     {
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
-        
         $this->options['path'] = $this->options['path'] ?? realpath(__DIR__ .'/..').'/';
-        $this->options['path_src'] = $this->getComponenetPathByKey('path_src');
-        $this->options['path_dump'] = $this->getComponenetPathByKey('path_dump');
-        $this->options['path_report'] = $this->getComponenetPathByKey('path_report');
-        $this->options['path_data'] = $this->getComponenetPathByKey('path_data');
+    
+        chdir($this->options['path']);
+        
+        if (empty($this->options['namespace']) && $this->options['auto_detect_namespace']) {
+            $this->options['namespace'] = $this->getDefaultNamespaceByComposer();
+        }
         if (!is_dir($this->options['path_dump'])) {
             mkdir($this->options['path_dump']);
         }
         if (!is_dir($this->options['path_report'])) {
             mkdir($this->options['path_report']);
         }
-        
         $this->is_inited = true;
         return $this;
     }
@@ -80,13 +75,29 @@ class LibCoverage
             return $this->options['path'].rtrim($this->options[$path_key], '/').'/';
         }
     }
+    protected function getDefaultNamespaceByComposer()
+    {
+        $data = file_get_contents($this->options['path'].'composer.json');
+
+        $data = json_decode($data, true);
+
+
+        $map = $data['autoload']['psr-4'];
+        
+
+        $namespaces = array_flip($map);
+        $namespace = $namespaces[$this->options['path_src']] ?? '';
+        $namespace = rtrim($namespace,'\\');
+        return $namespace;
+    }
     public function isInited():bool
     {
         return $this->is_inited;
     }
     public function getClassTestPath($class)
     {
-        $ret = rtrim($this->options['path_data'], '/').str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).'/';
+        $path_data = $this->getComponenetPathByKey('path_data');
+        $ret = rtrim($path_data,'/') .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).'/';
         return $ret;
     }
     public function addExtFile($extFile)
@@ -96,15 +107,19 @@ class LibCoverage
     ///////////////////////////
     protected function createReport()
     {
+        $path_src = $this->getComponenetPathByKey('path_src');
+        $path_dump = $this->getComponenetPathByKey('path_dump');
+        $path_report = $this->getComponenetPathByKey('path_report');
+        
         $coverage = new CodeCoverage();
-        $coverage->filter()->addDirectoryToWhitelist($this->options['path_src']);
+        $coverage->filter()->addDirectoryToWhitelist($path_src);
         $coverage->setTests([
           'T' => [
             'size' => 'unknown',
             'status' => -1,
           ],
         ]);
-        $directory = new \RecursiveDirectoryIterator($this->options['path_dump'], \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
+        $directory = new \RecursiveDirectoryIterator($path_dump, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
 
         $iterator = new \RecursiveIteratorIterator($directory);
         $files = \iterator_to_array($iterator, false);
@@ -112,7 +127,7 @@ class LibCoverage
             $t = @include $file;
             $coverage->merge($t);
         }
-        (new ReportOfHtmlOfFacade)->process($coverage, $this->options['path_report']);
+        (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
         $report = $coverage->getReport();
         $lines_tested = $report->getNumExecutedLines();
@@ -144,12 +159,6 @@ class LibCoverage
     public function doBegin($class)
     {
         $this->test_class = $class;
-        if ($this->options['auto_detect_namespace'] && empty($this->options['namespace'])) {
-            $blocks = explode('\\', $this->test_class);
-            $root = array_shift($blocks);
-            $this->options['namespace'] = $root;
-        }
-        
         $this->coverage = new CodeCoverage();
         $this->setPath($this->classToPath($class));
         if ($this->extFile) {
@@ -157,6 +166,7 @@ class LibCoverage
         }
         $this->coverage->start($class);
     }
+    
     public function doEnd()
     {
         $this->coverage->stop();
@@ -199,8 +209,6 @@ class LibCoverage
     public function cleanDirectory($dir)
     {
         $dir = rtrim($dir, '/');
-        
-        
         $handle = opendir($dir);
         if ($handle === false) {
             return false;   //@codeCoverageIgnore
@@ -228,10 +236,10 @@ class LibCoverage
     ///////////////////////
 
 
-    public function doCreateTestFiles($source, $dest)
+    public function createTestFiles()
     {
-        $source = realpath($source).'/';
-        $dest = realpath($dest).'/';
+        $source = $this->getComponenetPathByKey('path_src');
+        $dest = $this->getComponenetPathByKey('path_test');
         
         $directory = new \RecursiveDirectoryIterator($source, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
         $iterator = new \RecursiveIteratorIterator($directory);
@@ -279,6 +287,7 @@ class LibCoverage
         $ret = "<"."?php \n";
         $ret .= <<<EOT
 namespace tests\\{$ns};
+
 use {$ns}\\{$InitClass};
 
 use LibCoverage\LibCoverage;
@@ -287,7 +296,7 @@ class $TestClass extends \PHPUnit\Framework\TestCase
 {
     public function testAll()
     {
-        \\LibCoverage\\LibCoverage::Begin({$InitClass}::class);
+        LibCoverage::Begin({$InitClass}::class);
         
         /* //
 
@@ -302,12 +311,43 @@ EOT;
         $ret .= <<<EOT
         //*/
         
-        \\LibCoverage\\LibCoverage::End();
+        LibCoverage::End();
     }
 }
 
 EOT;
         return $ret;
+    }
+    public function createProject()
+    {
+        $source = realpath(__DIR__.'/../').'/';
+        $dest = $this->options['path'].'/';
+        
+        if (!is_dir($this->options['path_dump'])) {
+            @mkdir($this->options['path_dump']);
+        }
+        if (!is_dir($this->options['path_report'])) {
+            @mkdir($this->options['path_report']);
+        }
+        if (!is_dir($this->options['path_test'])) {
+            @mkdir($this->options['path_test']);
+        }
+        if (!is_dir($this->options['path_data'])) {
+            @mkdir($this->options['path_data']);
+        }
+        
+        if(!file_exsits($dest.'tests/bootstrap.php')){
+            copy($source.'tests/bootstrap.php',$dest.'tests/bootstrap.php');
+        }
+        if(!file_exsits($dest.'tests/support.php')){
+            copy($source.'tests/support.php',$dest.'tests/support.php');
+        }
+        if(!file_exsits($dest.'phpunit.xml')){
+            $data=file_get_contents($source.'phpunit.xml');
+            $data=str_replace('LibCoverage',$options['namespace'], $data);
+            file_put_contents($data,$dest.'phpunit.xml');
+        }
+        //$this->command_fix();
     }
     
     /* //这段代码先记在这里
