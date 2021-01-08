@@ -8,6 +8,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
     public function testAll()
     {
         $old = LibCoverage::G();
+        $pwd = getcwd();
         LibCoverage::Begin(LibCoverage::class);
         ////[[[[
         $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
@@ -32,6 +33,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageEx::G()->addExtFile('t');
         
         ////]]]]
+        chdir($pwd);
         LibCoverage::G($old);
         LibCoverage::End();
         
@@ -79,21 +81,25 @@ EOT;
     }
     public function doTestMore()
     {
-        //$this->createProject();
-        //$this->createTestFiles();
-        
+
         $this->options['mypath']='/test/';
         $this->getComponenetPathByKey('mypath');
         $this->getOutputPath();
         $this->showResult();
         
+        // 这两个可以优化？
         $this->setPath($this->options['path']);
         $this->setPath($this->classToPath(LibCoverage::class));
         ////////////////
         
+        $this->makeDir('a/b/c',$this->options['path_src']);
+        rmdir($this->options['path_dump']);
+        rmdir($this->options['path_report']);
+        $this->createProject();
+        $this->createTestFiles();
         
-        
-        //$this->cleanDirectory($this->options['path']);
+        //exit;
+        $this->cleanDirectory($this->options['path']);
         
     }
     //

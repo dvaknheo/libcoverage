@@ -78,16 +78,11 @@ class LibCoverage
     protected function getDefaultNamespaceByComposer()
     {
         $data = file_get_contents($this->options['path'].'composer.json');
-
-        $data = json_decode($data, true);
-
-
+        $data = json_decode((string)$data, true);
         $map = $data['autoload']['psr-4'];
-        
-
         $namespaces = array_flip($map);
         $namespace = $namespaces[$this->options['path_src']] ?? '';
-        $namespace = rtrim($namespace,'\\');
+        $namespace = rtrim($namespace, '\\');
         return $namespace;
     }
     public function isInited():bool
@@ -97,7 +92,7 @@ class LibCoverage
     public function getClassTestPath($class)
     {
         $path_data = $this->getComponenetPathByKey('path_data');
-        $ret = rtrim($path_data,'/') .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).'/';
+        $ret = rtrim($path_data, '/') .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).'/';
         return $ret;
     }
     public function addExtFile($extFile)
@@ -197,7 +192,7 @@ class LibCoverage
     {
         $data = $this->createReport();
         echo "\nSTART CREATE REPORT AT " .DATE(DATE_ATOM)."\n";
-        echo "File:\nfile://".$this->options['path_report']."index.html" ."\n";
+        echo "Output File:\nfile://".$this->getComponenetPathByKey('path_report')."index.html" ."\n";
         echo "\n\033[42;30m All Done \033[0m Test Done!";
         echo "\nTest Lines: \033[42;30m{$data['lines_tested']}/{$data['lines_total']}({$data['lines_percent']})\033[0m\n";
         echo "\n\n";
@@ -336,18 +331,18 @@ EOT;
             @mkdir($this->options['path_data']);
         }
         
-        if(!file_exsits($dest.'tests/bootstrap.php')){
-            copy($source.'tests/bootstrap.php',$dest.'tests/bootstrap.php');
+        if (!file_exists($dest.'tests/bootstrap.php')) {
+            copy($source.'tests/bootstrap.php', $dest.'tests/bootstrap.php');
         }
-        if(!file_exsits($dest.'tests/support.php')){
-            copy($source.'tests/support.php',$dest.'tests/support.php');
+        if (!file_exists($dest.'tests/support.php')) {
+            copy($source.'tests/support.php', $dest.'tests/support.php');
         }
-        if(!file_exsits($dest.'phpunit.xml')){
-            $data=file_get_contents($source.'phpunit.xml');
-            $data=str_replace('LibCoverage',$options['namespace'], $data);
-            file_put_contents($data,$dest.'phpunit.xml');
+        if (!file_exists($dest.'phpunit.xml')) {
+            $data = file_get_contents($source.'phpunit.xml');
+            $data = str_replace('LibCoverage', (string)$this->options['namespace'], (string)$data);
+            file_put_contents($dest.'phpunit.xml', $dest.'phpunit.xml');
         }
-        //$this->command_fix();
+        $this->createTestFiles();
     }
     
     /* //这段代码先记在这里
