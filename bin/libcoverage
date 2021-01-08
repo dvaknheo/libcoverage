@@ -290,7 +290,7 @@ class Console extends ComponentBase
         }
         return $ret;
     }
-    public function getCommanListInfo()
+    public function getCommandListInfo()
     {
         $info = $this->getCommandGroupInfo();
         $str = '';
@@ -325,9 +325,9 @@ class Command
     /** help */
     public function command_help()
     {
-        echo "Usage: \n";
-        $info = Console::G()->getCommandGroupInfo();
-        echo $str;
+        echo "LibCoverage v" .LibCoverage\LibCoverage::VERSION;
+        echo "\nUsage: \n";
+        echo Console::G()->getCommandListInfo();
     }
     /**
      * show report
@@ -350,7 +350,7 @@ class Command
      */
     public function command_install()
     {
-        $options = $this->context_class::G()->getCliParameters();
+        $options = Console::G()->getCliParameters();
         LibCoverage\LibCoverage::G()->init($options)->createProject();
     }
 }

@@ -12,6 +12,8 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 
 class LibCoverage
 {
+    const VERSION = '1.0.1';
+    
     public $options = [
         'namespace' => null,
         'path' => null,
@@ -51,10 +53,7 @@ class LibCoverage
     public function init(array $options, ?object $context = null)
     {
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
-        $this->options['path'] = $this->options['path'] ?? realpath(__DIR__ .'/..').'/';
-    
-        chdir($this->options['path']);
-        
+        $this->options['path'] = $this->options['path'] ?? getcwd().'/';
         if (empty($this->options['namespace']) && $this->options['auto_detect_namespace']) {
             $this->options['namespace'] = $this->getDefaultNamespaceByComposer();
         }
@@ -251,6 +250,7 @@ class LibCoverage
                 continue;
             }
             file_put_contents($file_name, $data);
+            echo "Install      File:".$file_name."\n";
         }
     }
     protected function makeDir($short_file, $dest)
@@ -342,6 +342,8 @@ EOT;
             $data = str_replace('LibCoverage', (string)$this->options['namespace'], (string)$data);
             file_put_contents($dest.'phpunit.xml', $dest.'phpunit.xml');
         }
+        chdir($dest);
+        var_dump($this->options);
         $this->createTestFiles();
     }
     
