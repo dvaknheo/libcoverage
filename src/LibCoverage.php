@@ -251,7 +251,7 @@ class LibCoverage
                 continue;
             }
             file_put_contents($file_name, $data);
-            echo "Install      File:".$file_name."\n";
+            echo "Create File:".$file_name."\n";
         }
     }
     protected function makeDir($short_file, $dest)
