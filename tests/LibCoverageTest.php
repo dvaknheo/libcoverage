@@ -20,6 +20,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
         LibCoverageEx::makeData($path);
         LibCoverageEx::G(new LibCoverageEx);
+        chdir($path);
         LibCoverageEx::G()->init([
             'path'=>$path,
             'path_dump'=>'path_dump',

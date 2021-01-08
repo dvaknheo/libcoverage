@@ -342,8 +342,6 @@ EOT;
             $data = str_replace('LibCoverage', (string)$this->options['namespace'], (string)$data);
             file_put_contents($dest.'phpunit.xml', $dest.'phpunit.xml');
         }
-        chdir($dest);
-        var_dump($this->options);
         $this->createTestFiles();
     }
     
