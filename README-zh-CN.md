@@ -15,7 +15,7 @@ composer exec libcoverage setup    # 安装
 phpunit                            # phpunit 单元测试
 cat test_reports/index.html        # 查看报告，你可以用浏览器打开
 # composer exec libcoverage cloze  # 新增了类，添加测试模板
-# phpunit tests/AppTest.php && phpunit tests/support.php //某类的猜测类变更，重新生成
+# phpunit tests/AppTest.php && phpunit tests/support.php # 某类的猜测类变更，重新生成
 # composer exec libcoverage report  # 备用生成报告， phpunit 的时候已经就有了。
 ```
 
@@ -23,7 +23,7 @@ cat test_reports/index.html        # 查看报告，你可以用浏览器打开
 
 运行 `phpunit` ，然后查看 test_reports 目录下的 `index.html`
 
-`setup` 还根据相应的 src 目录的类文件生成对应的 `*Test.php` 测试模板文件
+`setup` 还根据相应的 src 目录的类文件生成对应的 `tests/*Test.php` 测试模板文件
 
 例如 src/App.php
 
