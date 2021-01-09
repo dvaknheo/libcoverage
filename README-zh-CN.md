@@ -89,9 +89,9 @@ class AppTest extends \PHPUnit\Framework\TestCase
     ];
 ```
 
-`composer exec libcoverage` 的时候可以把这些选项带进来。如
+`composer exec libcoverage` 的时候可以把这些选项带进来。但由于 composer 的限制，你要改执行文件
 
-`composer exec libcoverage --path='abc'  --path_test=test` 等
+`vendor/bin/libcoverage --path='abc'  --path_test=test` 等
 
 ## LibCoverage 类公开方法参考
 
@@ -131,9 +131,9 @@ class MyLibCoverage extends \LibCoverage\LibCoverage
     }
 }
 ```
-`composer exec libcoverage --override_class='MyProject\MyLibCoverage'`
+`vendor/bin/libcoverage --override_class='MyProject\MyLibCoverage'`
 
-So, you can see the string `-------- customer overrrided -------` after run.
+于是你就能看到 `-------- customer overrrided -------` after run.
 
 ```
 ## 全覆盖测试通过不等于所有功能测试通过

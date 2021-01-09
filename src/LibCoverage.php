@@ -31,15 +31,25 @@ class LibCoverage
     protected $coverage;
     protected $test_class;
 
+    protected static $_instances = [];
+    //embed
     public static function G($object = null)
     {
         if (defined('__SINGLETONEX_REPALACER')) {
             $callback = __SINGLETONEX_REPALACER;
             return ($callback)(static::class, $object);
         }
-        static $_instance;
-        $_instance = $object?:($_instance ?? new static);
-        return $_instance;
+        if ($object) {
+            self::$_instances[static::class] = $object;
+            return $object;
+        }
+        $me = self::$_instances[static::class] ?? null;
+        if (null === $me) {
+            $me = new static();
+            self::$_instances[static::class] = $me;
+        }
+        
+        return $me;
     }
     public static function Begin($class)
     {

@@ -11,13 +11,19 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         $pwd = getcwd(); // chdir 没搞懂
         LibCoverage::Begin(LibCoverage::class);
         ////[[[[
+        
         $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
         
         LibCoverage::G()->cleanDirectory($path);
         LibCoverage::G()->showAllReport();
         ////
         $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
+        
+        LibCoverageEx::G();
+        LibCoverageEx::G(LibCoverageEx::G());
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
+        
+        
         LibCoverageEx::makeData($path);
         LibCoverageEx::G(new LibCoverageEx);
         chdir($path);

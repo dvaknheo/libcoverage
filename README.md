@@ -87,7 +87,7 @@ next image is LibCoverage self unit test report
 
 `composer exec libcoverage` can take these options on.
 
-e.g. `composer exec libcoverage --path='abc'  --path_test=test`
+e.g. `vendor/bin/libcoverage --path='abc'  --path_test=test`
 
 ## LibCoverage class public methods
 
@@ -127,6 +127,6 @@ class MyLibCoverage extends \LibCoverage\LibCoverage
     }
 }
 ```
-`composer exec libcoverage --override_class='MyProject\MyLibCoverage'`
+`vendor/bin/libcoverage --override_class='MyProject\MyLibCoverage'`
 
 So, you can see the string `-------- customer overrrided -------` after run.
