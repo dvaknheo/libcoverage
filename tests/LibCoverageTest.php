@@ -37,6 +37,11 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         chdir($pwd); // chdir 没搞懂
         LibCoverageEx::G(new LibCoverageEx)->init($old->options)->createReportTest(); //这个想测 include 那段，没成
         
+        ///override
+        LibCoverageOverride::G()->init(['override_class'=>LibCoverageEx::class]);
+        LibCoverageOverride::G()->init(['override_class'=>'NoExists']);
+        LibCoverageOverride::G()->init(['override_class'=>LibCoverageOverride::class]);
+
         LibCoverage::G($old);
         LibCoverage::End();
         
@@ -48,7 +53,7 @@ class SingletonExObject
     {
         static $_instance;
         $_instance = $_instance??[];
-        $_instance[$class] = $object?:($_instance[$class]??($_instance[$class]??new static));
+        $_instance[$class] = $object?:($_instance[$class]??($_instance[$class]??new $class));
         return $_instance[$class];
     }
 
@@ -110,6 +115,10 @@ EOT;
         
     }
     //
+}
+class LibCoverageOverride extends LibCoverageEx
+{
+
 }
 /*
 

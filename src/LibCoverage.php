@@ -23,6 +23,7 @@ class LibCoverage
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
         'auto_detect_namespace' => true,
+        'override_class' => null,
     ];
     public $is_inited = true;
     
@@ -49,8 +50,27 @@ class LibCoverage
         return static::G()->doEnd();
     }
     ////////
-
-    public function init(array $options, ?object $context = null)
+    protected function checkOverride($override_class)
+    {
+        if (empty($override_class)) {
+            return $this;
+        }
+        if (!class_exists($override_class)) {
+            return $this;
+        }
+        if (static::class === $override_class) {
+            return $this;
+        }
+        
+        $object = $override_class::G();
+        return $object;
+    }
+    public function init(array $options, object $context = null)
+    {
+        $object = $this->checkOverride($options['override_class'] ?? null);
+        return $object->initAfterOverride($options, $context);
+    }
+    public function initAfterOverride(array $options, ?object $context = null)
     {
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
         $this->options['path'] = $this->options['path'] ?? getcwd().'/';

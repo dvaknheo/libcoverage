@@ -85,6 +85,7 @@ class AppTest extends \PHPUnit\Framework\TestCase
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
         'auto_detect_namespace' => true, 
+        'override_class' => null,
     ];
 ```
 
@@ -114,6 +115,26 @@ class AppTest extends \PHPUnit\Framework\TestCase
     LibCoverage::G()->addExtFile($extFile); // 添加额外测试文件，如全局函数文件等
     LibCoverage::G()->getClassTestPath($class); // 获得测试类专用目录， 默认是 tests/data_for_test/【类名】
     LibCoverage::G()->cleanDirectory($dir);  // 辅助方法，用于情况测试目录等。
+
+## 自定义和 选项 'override_class'
+
+```php
+<?php
+namespace MyProject;
+ 
+class MyLibCoverage extends \LibCoverage\LibCoverage
+{
+    public function showAllReport()
+    {
+        parent::showAllReport();
+        echo "\n-------- customer overrrided -------\n";
+    }
+}
+```
+`composer exec libcoverage --override_class='MyProject\MyLibCoverage'`
+
+So, you can see the string `-------- customer overrrided -------` after run.
+
 ```
 ## 全覆盖测试通过不等于所有功能测试通过
 

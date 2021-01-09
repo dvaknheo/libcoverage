@@ -70,7 +70,7 @@ next image is LibCoverage self unit test report
 ![capture](docs/capture.png)
 
 
-### LibCoverage options
+## LibCoverage options
 ```
     public $options = [
         'namespace' => null,
@@ -80,7 +80,8 @@ next image is LibCoverage self unit test report
         'path_report' => 'test_reports',
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
-        'auto_detect_namespace' => true, 
+        'auto_detect_namespace' => true,
+        'override_class' => null,
     ];
 ```
 
@@ -111,4 +112,21 @@ other methods
     LibCoverage::G()->getClassTestPath($class); // directory for class . e.g. tests/data_for_test/<$class>
     LibCoverage::G()->cleanDirectory($dir);  // for clean support dir.
 ```
-##
+## customer and option 'override_class'
+
+```php
+<?php
+namespace MyProject;
+ 
+class MyLibCoverage extends \LibCoverage\LibCoverage
+{
+    public function showAllReport()
+    {
+        parent::showAllReport();
+        echo "\n-------- customer overrrided -------\n";
+    }
+}
+```
+`composer exec libcoverage --override_class='MyProject\MyLibCoverage'`
+
+So, you can see the string `-------- customer overrrided -------` after run.

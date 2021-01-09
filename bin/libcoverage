@@ -28,7 +28,7 @@ class Command
      */
     public function command_report()
     {
-        if (class_exists(\SebastianBergmann\CodeCoverage\CodeCoverage::class)) {
+        if (!class_exists(\SebastianBergmann\CodeCoverage\CodeCoverage::class)) {
             echo 'Need import CodeCoverage package';
             echo "\n";
             return;

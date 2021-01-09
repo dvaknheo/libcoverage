@@ -23,6 +23,9 @@
     "bin": [
         "bin/libcoverage"
     ],
+    "suggest": {
+        "phpunit/php-code-coverage": "work with 8.0.2"
+    },
     "require": {
         "php": ">=7.2.0"
 	}
