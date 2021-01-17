@@ -116,7 +116,7 @@ class LibCoverage
         $flag = array_reduce(
             $c_args,
             function($flag,$v){
-                return $flag || in_array($v,$_SERVER['argv']);
+                return $flag || in_array($v,$_SERVER['argv'] ?? []);
             },
             false
         );
