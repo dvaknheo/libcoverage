@@ -30,6 +30,8 @@ class LibCoverage
     protected $extFile = null;
     protected $coverage;
     protected $test_class;
+    
+    protected $is_skip = false;
 
     protected static $_instances = [];
     //embed
@@ -50,6 +52,9 @@ class LibCoverage
         }
         
         return $me;
+    }
+    public function __construct()
+    {
     }
     public static function Begin($class)
     {
@@ -87,14 +92,35 @@ class LibCoverage
         if (empty($this->options['namespace']) && $this->options['auto_detect_namespace']) {
             $this->options['namespace'] = $this->getDefaultNamespaceByComposer();
         }
+        $this->is_skip = $this->isSkip();
         if (!is_dir($this->options['path_dump'])) {
             mkdir($this->options['path_dump']);
         }
         if (!is_dir($this->options['path_report'])) {
             mkdir($this->options['path_report']);
         }
+        $this->coverage = new CodeCoverage();
         $this->is_inited = true;
         return $this;
+    }
+    protected function isSkip()
+    {
+        $c_args=[
+            '--coverage-clover',
+            '--coverage-crap4j',
+            '--coverage-html',
+            '--coverage-php',
+            '--coverage-text',
+            'Standard input code',
+        ];
+        $flag = array_reduce(
+            $c_args,
+            function($flag,$v){
+                return $flag || in_array($v,$_SERVER['argv']);
+            },
+            false
+        );
+        return $flag;
     }
     protected function getComponenetPathByKey($path_key)
     {
@@ -183,17 +209,28 @@ class LibCoverage
     
     public function doBegin($class)
     {
+
+        
         $this->test_class = $class;
-        $this->coverage = new CodeCoverage();
         $this->setPath($this->classToPath($class));
         if ($this->extFile) {
             $this->coverage->filter()->addFileToWhitelist($this->extFile); //@codeCoverageIgnore
+        }
+        
+        if($this->isSkip()){
+            return;
         }
         $this->coverage->start($class);
     }
     
     public function doEnd()
     {
+        if($this->isSkip()){
+            if (class_exists(Assert::class)) {
+                Assert::assertTrue(true);
+            }
+            return;
+        }
         $this->coverage->stop();
         
         //@codeCoverageIgnoreStart
@@ -220,6 +257,12 @@ class LibCoverage
     }
     public function showAllReport()
     {
+        if($this->isSkip()){
+            if (class_exists(Assert::class)) {
+                Assert::assertTrue(true);
+            }
+            return;
+        }
         $data = $this->createReport();
         echo "\nSTART CREATE REPORT AT " .DATE(DATE_ATOM)."\n";
         echo "Output File:\n\n\033[42;30mfile://".$this->getComponenetPathByKey('path_report')."index.html" ."\033[0m\n";

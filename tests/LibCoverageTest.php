@@ -48,6 +48,12 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageOverride::G()->init(['override_class'=>'NoExists']);
         LibCoverageOverride::G()->init(['override_class'=>LibCoverageOverride::class]);
 
+        $t=$_SERVER;
+        $_SERVER['argv'][0]='Standard input code';
+        LibCoverageOverride::Begin(LibCoverage::class);
+        LibCoverageOverride::End();
+        LibCoverageOverride::G()->showAllReport();
+        $_SERVER=$t;
         LibCoverage::G($old);
         LibCoverage::End();
         

@@ -6,24 +6,6 @@ foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../src/LibCoverage.ph
     }
 }
 
-$c_args=[
-    '--coverage-clover',
-    '--coverage-crap4j',
-    '--coverage-html',
-    '--coverage-php',
-    '--coverage-text',
-];
-$flag = array_reduce(
-    $c_args,
-    function($flag,$v){
-        return $flag || in_array($v,$_SERVER['argv']);
-    },
-    false
-);
-if($flag) {
-    return;
-}
-
 ////////
 $options=[
     //'path' => null,
