@@ -12,7 +12,7 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 
 class LibCoverage
 {
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.4';
     
     public $options = [
         'namespace' => null,
