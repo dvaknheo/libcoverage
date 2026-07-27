@@ -127,7 +127,6 @@ class LibCoverage
             '--coverage-html',
             '--coverage-php',
             '--coverage-text',
-            'Standard input code',
         ];
         $flag = array_reduce(
             $c_args,
