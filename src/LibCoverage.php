@@ -227,8 +227,8 @@ class LibCoverage
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
         $report = $coverage->getReport();
-        $lines_tested = $report->getNumExecutedLines();
-        $lines_total = $report->getNumExecutableLines();
+        $lines_tested = $report->numberOfExecutedLines();
+        $lines_total = $report->numberOfExecutableLines();
         $lines_percent = sprintf('%0.2f%%', $lines_tested / $lines_total * 100);
         return [
             'lines_tested' => $lines_tested,
