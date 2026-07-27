@@ -12,9 +12,10 @@
     "authors": [
         {
             "name": "davknheo",
-            "email": "85811616@qq.com"
+            "email": "davknheo@qq.com"
         }
     ],
+	"version": "1.0.6",
 	"autoload": {
         "psr-4": {
             "LibCoverage\\": "src"
@@ -27,6 +28,6 @@
         "phpunit/php-code-coverage": "work with 8.0.2"
     },
     "require": {
-        "php": ">=7.2.0"
+        "php": ">=7.4.0"
 	}
 }

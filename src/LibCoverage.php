@@ -12,7 +12,7 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 
 class LibCoverage
 {
-    const VERSION = '1.0.5';
+    const VERSION = '1.0.6';
     
     public $options = [
         'namespace' => null,
@@ -30,10 +30,17 @@ class LibCoverage
     protected $extFile = null;
     protected $coverage;
     protected $test_class;
+    protected $filter;
+    protected $isNewCodeCoverage;
     
     protected $is_skip = false;
 
     protected static $_instances = [];
+    
+    protected static function isNewCodeCoverage(): bool
+    {
+        return class_exists(\SebastianBergmann\CodeCoverage\Driver\XdebugDriver::class);
+    }
     //embed
     public static function G($object = null)
     {
@@ -80,7 +87,7 @@ class LibCoverage
         $object = $override_class::G();
         return $object;
     }
-    public function init(array $options, object $context = null)
+    public function init(array $options, ?object $context = null)
     {
         $object = $this->checkOverride($options['override_class'] ?? null);
         return $object->initAfterOverride($options, $context);
@@ -99,7 +106,16 @@ class LibCoverage
         if (!is_dir($this->options['path_report'])) {
             mkdir($this->options['path_report']);
         }
-        $this->coverage = new CodeCoverage();
+        $this->isNewCodeCoverage = static::isNewCodeCoverage();
+        if ($this->isNewCodeCoverage) {
+            $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
+            $this->coverage = new CodeCoverage(
+                (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
+                $this->filter
+            );
+        } else {
+            $this->coverage = new CodeCoverage();
+        }
         $this->is_inited = true;
         return $this;
     }
@@ -155,14 +171,45 @@ class LibCoverage
         $this->extFile = $extFile;
     }
     ///////////////////////////
+    protected function addPathToFilter($target, $path): void
+    {
+        if (is_file($path)) {
+            if ($this->isNewCodeCoverage) {
+                $target->includeFiles([$path]);
+            } else {
+                $target->addFileToWhitelist($path);
+            }
+        } else {
+            if ($this->isNewCodeCoverage) {
+                $dir = new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
+                $it = new \RecursiveIteratorIterator($dir);
+                foreach ($it as $f) {
+                    if (substr($f, -4) === '.php') {
+                        $target->includeFiles([$f]);
+                    }
+                }
+            } else {
+                $target->addDirectoryToWhitelist($path);
+            }
+        }
+    }
     protected function createReport()
     {
         $path_src = $this->getComponenetPathByKey('path_src');
         $path_dump = $this->getComponenetPathByKey('path_dump');
         $path_report = $this->getComponenetPathByKey('path_report');
         
-        $coverage = new CodeCoverage();
-        $coverage->filter()->addDirectoryToWhitelist($path_src);
+        if ($this->isNewCodeCoverage) {
+            $filter = new \SebastianBergmann\CodeCoverage\Filter();
+            $this->addPathToFilter($filter, $path_src);
+            $coverage = new CodeCoverage(
+                (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($filter),
+                $filter
+            );
+        } else {
+            $coverage = new CodeCoverage();
+            $coverage->filter()->addDirectoryToWhitelist($path_src);
+        }
         $coverage->setTests([
           'T' => [
             'size' => 'unknown',
@@ -197,11 +244,8 @@ class LibCoverage
     //@forOverride
     protected function setPath($path)
     {
-        if (is_file($path)) {
-            $this->coverage->filter()->addFileToWhitelist($path);
-        } else {
-            $this->coverage->filter()->addDirectoryToWhitelist($path);
-        }
+        $target = $this->isNewCodeCoverage ? $this->filter : $this->coverage->filter();
+        $this->addPathToFilter($target, $path);
     }
     //@forOverride
     protected function classToPath($class)
@@ -212,12 +256,12 @@ class LibCoverage
     
     public function doBegin($class)
     {
-
         
         $this->test_class = $class;
         $this->setPath($this->classToPath($class));
         if ($this->extFile) {
-            $this->coverage->filter()->addFileToWhitelist($this->extFile); //@codeCoverageIgnore
+            $target = $this->isNewCodeCoverage ? $this->filter : $this->coverage->filter();
+            $this->addPathToFilter($target, $this->extFile);
         }
         
         if($this->isSkip()){
