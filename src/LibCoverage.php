@@ -12,7 +12,7 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 
 class LibCoverage
 {
-    const VERSION = '1.0.6';
+    const VERSION = '1.0.7';
     
     public $options = [
         'namespace' => null,
@@ -227,8 +227,13 @@ class LibCoverage
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
         $report = $coverage->getReport();
-        $lines_tested = $report->numberOfExecutedLines();
-        $lines_total = $report->numberOfExecutableLines();
+        // PHP 7.4 (php-code-coverage 8.x) uses old method names, PHP 8.4 (php-code-coverage 10+) uses new
+        $lines_tested = method_exists($report, 'numberOfExecutedLines')
+            ? $report->numberOfExecutedLines()
+            : $report->getNumExecutedLines();
+        $lines_total = method_exists($report, 'numberOfExecutableLines')
+            ? $report->numberOfExecutableLines()
+            : $report->getNumExecutableLines();
         $lines_percent = sprintf('%0.2f%%', $lines_tested / $lines_total * 100);
         return [
             'lines_tested' => $lines_tested,

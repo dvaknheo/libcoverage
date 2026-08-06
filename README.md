@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README-zh-CN.md)
 
-*** v1.0.1 ***
+*** v1.0.7 ***
 LibCoverage for full code coverage for php library creater.
 
 
