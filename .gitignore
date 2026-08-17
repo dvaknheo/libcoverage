@@ -2,3 +2,5 @@
 /test_coveragedumps
 /nbproject
 *.cache
+/vendor
+/composer.lock
