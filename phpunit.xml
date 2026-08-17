@@ -2,11 +2,7 @@
 
 <phpunit
     backupGlobals="false"
-    backupStaticAttributes="false"
     colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
     processIsolation="true"
     bootstrap="tests/bootstrap.php"
     >
@@ -18,9 +14,4 @@
             <file>tests/support.php</file>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist>
-            <directory>./src/</directory>
-        </whitelist>
-    </filter>
 </phpunit>
