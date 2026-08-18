@@ -220,6 +220,9 @@ class LibCoverage
         $iterator = new \RecursiveIteratorIterator($directory);
         $files = \iterator_to_array($iterator, false);
         foreach ($files as $file) {
+            if (substr($file, -4) !== '.php') {
+                continue;
+            }
             // 要重复两遍才能 100% ，所以 ignore 得了，使用 include 会导致一个 Bug 。
             $t = static::include_file($file);    //@codeCoverageIgnore
             $coverage->merge($t);   //@codeCoverageIgnore
