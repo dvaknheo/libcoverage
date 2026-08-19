@@ -102,6 +102,10 @@ class LibCoverage
             mkdir($this->options['path_report']);
         }
         $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
+        // Ensure the driver sees all source files before it is created,
+        // otherwise Xdebug's code-coverage filter is set too early and
+        // misses files added later in doBegin().
+        $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
         $this->coverage = new CodeCoverage(
             (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
             $this->filter
@@ -310,6 +314,9 @@ class LibCoverage
     public function cleanDirectory($dir)
     {
         $dir = rtrim($dir, '/');
+        if (!is_dir($dir)) {
+            return true;   //@codeCoverageIgnore
+        }
         $handle = opendir($dir);
         if ($handle === false) {
             return false;   //@codeCoverageIgnore

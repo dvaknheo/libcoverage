@@ -13,7 +13,6 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         ////[[[[
         
         $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
-        
         LibCoverage::G()->cleanDirectory($path);
         LibCoverage::G()->showAllReport();
         ////
@@ -78,6 +77,7 @@ class LibCoverageEx extends LibCoverage
     }
     public static function makeData($path)
     {
+        @mkdir($path, 0777, true);
 $str=<<<EOT
 {
     "autoload": {
