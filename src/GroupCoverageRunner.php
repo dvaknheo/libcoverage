@@ -36,6 +36,10 @@ class GroupCoverageRunner
     protected $current_group = '';
 
     protected static $_instances = [];
+    public static function G($object = null)
+    {
+        return static::G($object);
+    }
     //embed
     public static function _($object = null)
     {

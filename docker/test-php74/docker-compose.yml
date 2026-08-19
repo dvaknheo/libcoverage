@@ -10,6 +10,7 @@ services:
     volumes:
       - ../../:/DATA
       - ./composer-test-php74.lock:/DATA/composer.lock
+      - libcoverage-data-for-tests74:/DATA/tests/data_for_tests
       - libcoverage-vendor74:/DATA/vendor
       - libcoverage-composer-cache74:/tmp/composer
       - ./test_reports:/DATA/test_reports
@@ -32,3 +33,4 @@ services:
 volumes:
   libcoverage-vendor74:
   libcoverage-composer-cache74:
+  libcoverage-data-for-tests74:

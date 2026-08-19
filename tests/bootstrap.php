@@ -8,14 +8,14 @@ foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../src/LibCoverage.ph
 
 ////////
 $options=[
-    //'path' => null,
+    'path' => realpath(__DIR__ .'/../').'/',
     //'namespace' => null,
     //'auto_detect_namespace' => true,
     
-    //'path_src' => 'src',
-    //'path_dump' => 'test_coveragedumps',
-    //'path_report' => 'test_reports',
-    //'path_data' => 'tests/data_for_tests',
+    'path_src' => 'src',
+    'path_dump' => 'test_coveragedumps',
+    'path_report' => 'test_reports',
+    'path_data' => 'tests/data_for_tests',
 ];
 
 LibCoverage\LibCoverage::G()->init($options);
