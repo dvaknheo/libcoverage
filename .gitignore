@@ -4,3 +4,5 @@
 *.cache
 /vendor
 /composer.lock
+/.dsh
+/.reasonix

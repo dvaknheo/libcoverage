@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  libcoverage:
+    image: libcoverage/test-php74:latest
+    build:
+      context: ../..
+      dockerfile: docker/test-php74/Dockerfile
+    working_dir: /DATA
+    volumes:
+      - ../../:/DATA
+      - ../../composer-test-php74.json:/DATA/composer.json
+      - ../../composer-test-php74.lock:/DATA/composer.lock
+      - libcoverage-vendor74:/DATA/vendor
+      - libcoverage-composer-cache74:/tmp/composer
+      - ./test_reports:/DATA/test_reports
+      - ./test_coveragedumps:/DATA/test_coveragedumps
+    environment:
+      - COMPOSER_HOME=/tmp/composer
+      - XDEBUG_MODE=coverage
+    command: tail -f /dev/null
+
+volumes:
+  libcoverage-vendor74:
+  libcoverage-composer-cache74:
