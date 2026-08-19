@@ -9,8 +9,7 @@ services:
     working_dir: /DATA
     volumes:
       - ../../:/DATA
-      - ../../composer-test-php74.json:/DATA/composer.json
-      - ../../composer-test-php74.lock:/DATA/composer.lock
+      - ./composer-test-php74.lock:/DATA/composer.lock
       - libcoverage-vendor74:/DATA/vendor
       - libcoverage-composer-cache74:/tmp/composer
       - ./test_reports:/DATA/test_reports
@@ -18,7 +17,17 @@ services:
     environment:
       - COMPOSER_HOME=/tmp/composer
       - XDEBUG_MODE=coverage
-    command: tail -f /dev/null
+    command:
+      - sh
+      - -c
+      - |
+        cd /DATA &&
+        [ -f /DATA/composer.lock ] || (echo composer.lock_missing; exit 1)
+        if [ ! -d /DATA/vendor ] || [ ! -f /DATA/vendor/autoload.php ]; then
+          composer install --no-interaction --prefer-dist --no-scripts
+        fi
+        composer exec phpunit
+        tail -f /dev/null
 
 volumes:
   libcoverage-vendor74:

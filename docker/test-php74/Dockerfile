@@ -27,13 +27,5 @@ RUN curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php \
 
 WORKDIR /DATA
 
-# build 阶段需要 composer.json 才能跑 composer install
-# （运行时由 docker-compose mount 覆盖）
-COPY composer-test-php74.json /DATA/composer.json
-COPY src/ /DATA/src/
-COPY bin/ /DATA/bin/
-
-# 预烤 vendor（走 packagist 官方源 https://repo.packagist.org）
-# 首次 build 会从 packagist 拉 32 个依赖包，后续 build 命中 cache 秒过
-RUN composer install --no-interaction --prefer-dist \
-    && composer clear-cache
+# 不烧 vendor 进镜像：vendor 在容器启动后由 docker-compose 的 command 拉
+# （镜像只装好 composer 工具 + xdebug + unzip + git 这些"工具层"）
