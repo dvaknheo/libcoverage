@@ -42,13 +42,14 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
         include $path.'src/App.php';
         //ob_start();
+        LibCoverage::_()->doPause();
         LibCoverageProject::Begin("MyProject\\App");
         try{
             (new \MyProject\App)->foo();
         }catch(\Exception $ex){};
         LibCoverageProject::End();
-        LibCoverage::Begin(LibCoverage::class);
-        LibCoverageProject::_()->showAllReport();
+        LibCoverage::_()->Begin(LibCoverage::class);
+        //LibCoverageProject::_()->showAllReport();
 
         //LibCoverageEx::_()->doTestMore();
         //LibCoverageEx::_()->addExtFile('t');

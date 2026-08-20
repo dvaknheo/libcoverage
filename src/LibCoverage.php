@@ -23,7 +23,6 @@ class LibCoverage
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
         'auto_detect_namespace' => true,
-        'override_class' => null,
     ];
     public $is_inited = true;
     
@@ -35,7 +34,6 @@ class LibCoverage
     protected $is_skip = false;
 
     protected static $_instances = [];
-    protected static $activeCoverageInstance = null;
     
     //embed
     /**
@@ -88,11 +86,8 @@ class LibCoverage
         $this->is_skip = $this->isSkip();
         $this->make_sub_dir('path_dump');
         $this->make_sub_dir('path_report');
-        
 
-        
         $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
-        $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
         $this->coverage = new CodeCoverage(
             (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
             $this->filter
@@ -150,28 +145,27 @@ class LibCoverage
     public function addExtFile($extFile)
     {
         $this->extFile = $extFile;
-        if ($this->filter !== null && file_exists($extFile)) {
-            $this->addPathToFilter($this->filter, $extFile);
-        }
+        $this->addPathToFilter($this->filter, $extFile);
     }
     ///////////////////////////
     protected function addPathToFilter($target, $path): void
     {
         if (!file_exists($path)) {
-            return;
-        }
-        if (is_file($path)) {
-                $target->includeFiles([$path]);
-        } else {
-                $dir = new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
-                $it = new \RecursiveIteratorIterator($dir);
-                foreach ($it as $f) {
-                    if (substr($f, -4) === '.php') {
-                        $target->includeFiles([$f]);
-                    }
-                }
+            return;         //@codeCoverageIgnore
 
         }
+        if (is_file($path)) {
+            $target->includeFiles([$path]);
+            return;
+        } 
+        $dir = new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
+        $it = new \RecursiveIteratorIterator($dir);
+        foreach ($it as $f) {
+            if (substr($f, -4) === '.php') {
+                $target->includeFiles([$f]);
+            }
+        }
+
     }
     protected function createReport()
     {
@@ -200,7 +194,7 @@ class LibCoverage
                 continue;
             }
             $t = static::include_file($file);
-            copy($file,$file.'.bak-'.DATE('Y-m-d_H-i-s'));
+            //copy($file,$file.'.bak-'.DATE('Y-m-d_H-i-s'));
             $coverage->merge($t);
         }
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
@@ -231,7 +225,10 @@ class LibCoverage
         $ref = new \ReflectionClass($class);
         return $ref->getFileName();
     }
-    
+    public function doPause()
+    {
+        $this->coverage->stop();
+    }
     public function doBegin($class)
     {
         $this->test_class = $class;
@@ -239,23 +236,11 @@ class LibCoverage
         if ($this->isSkip()) {
             return;
         }
-
-        // 先把当前正在运行的其他 coverage 停下来并 dump，防止数据被底层 driver 抢走
-        if (self::$activeCoverageInstance !== null && self::$activeCoverageInstance !== $this) {
-            $active = self::$activeCoverageInstance;
-            if ($active->coverage !== null) {
-                $active->coverage->stop();
-                $activePath = $active->getOutputPath();
-                (new ReportOfPHP)->process($active->coverage, $activePath);
-            }
-            self::$activeCoverageInstance = null;
-        }
-
         // 确保当前 coverage/filter 可用
         if ($this->coverage === null) {
             if ($this->filter === null) {
                 $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
-                $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
+                $this->addPathToFilter($this->filter, $this->classToPath($class));
             }
             if ($this->extFile) {
                 $this->addPathToFilter($this->filter, $this->extFile);
@@ -272,8 +257,7 @@ class LibCoverage
             $this->addPathToFilter($target, $this->extFile);
         }
 
-        self::$activeCoverageInstance = $this;
-        $this->coverage->start($class);
+        $this->coverage->start("id_" . $class);
     }
     
     public function doEnd()
@@ -289,9 +273,6 @@ class LibCoverage
         $path = $this->getOutputPath();
         (new ReportOfPHP)->process($this->coverage, $path);
         $this->coverage = null;
-        if (self::$activeCoverageInstance === $this) {
-            self::$activeCoverageInstance = null;
-        }
         $this->showResult();
     }
     protected function getOutputPath()
