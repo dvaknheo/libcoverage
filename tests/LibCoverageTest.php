@@ -7,52 +7,69 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
 {
     public function testAll()
     {
-        $old = LibCoverage::G();
-        $pwd = getcwd(); // chdir 没搞懂
+        $__SERVER = $_SERVER;
+        $pwd = getcwd();
+        $old = LibCoverage::_();
+
+        $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
         LibCoverage::Begin(LibCoverage::class);
-        ////[[[[
+        LibCoverage::_()->getClassTestPath(LibCoverage::class);
+        LibCoverage::_()->cleanDirectory($path);
+        LibCoverage::_()->showAllReport();
         
-        $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
-        LibCoverage::G()->cleanDirectory($path);
-        LibCoverage::G()->showAllReport();
         ////
-        $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
-        
-        LibCoverageEx::G();
-        LibCoverageEx::G(LibCoverageEx::G());
+        LibCoverageEx::_();
+        LibCoverageEx::G(LibCoverageEx::_());
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
+        LibCoverageEx::_();
+
+
+        //*
+        LibCoverageProject::makeData($path);
         
-        
-        LibCoverageEx::makeData($path);
-        LibCoverageEx::G(new LibCoverageEx);
-        chdir($path);
-        LibCoverageEx::G()->init([
+        LibCoverageProject::_()->init([
             'path'=>$path,
             'path_dump'=>'path_dump',
             'path_report'=>'path_report',
             'path_data'=>'path_data',
+            //'namespace' => 'A',
         ])->isInited();
         
-        LibCoverageEx::Begin(LibCoverage::class);
+        LibCoverageProject::_()->createProject();
+        LibCoverageProject::_()->createProject();
+
+        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+        include $path.'src/App.php';
+        //ob_start();
+        LibCoverageProject::Begin("MyProject\\App");
+        try{
+            (new \MyProject\App)->foo();
+        }catch(\Exception $ex){};
+        // LibCoverageProject::End();
+        LibCoverageProject::_()->showAllReport();
         
-        LibCoverageEx::G()->doTestMore();
-        LibCoverageEx::G()->addExtFile('t');
+                echo "zzzzzzzzzzzzzzzzzzzzzzzzz\n";
+
+        //LibCoverageEx::_()->doTestMore();
+        //LibCoverageEx::_()->addExtFile('t');
         
         ////]]]]
-        chdir($pwd); // chdir 没搞懂
-        LibCoverageEx::G(new LibCoverageEx)->init($old->options)->createReportTest(); //这个想测 include 那段，没成
-        
-        ///override
-        LibCoverageOverride::G()->init(['override_class'=>LibCoverageEx::class]);
-        LibCoverageOverride::G()->init(['override_class'=>'NoExists']);
-        LibCoverageOverride::G()->init(['override_class'=>LibCoverageOverride::class]);
+        //LibCoverageEx::G(new LibCoverageEx)->init($old->options)->createReportTest(); //这个想测 include 那段，没成
 
-        $t=$_SERVER;
-        $_SERVER['argv'][0]='Standard input code';
-        LibCoverageOverride::Begin(LibCoverage::class);
-        LibCoverageOverride::End();
-        LibCoverageOverride::G()->showAllReport();
-        $_SERVER=$t;
+        //*/
+        ///override
+        // LibCoverageOverride::_()->init(['override_class'=>LibCoverageEx::class]);
+        // LibCoverageOverride::_()->init(['override_class'=>'NoExists']);
+        // LibCoverageOverride::_()->init(['override_class'=>LibCoverageOverride::class]);
+
+        // $t=$_SERVER;
+        // $_SERVER['argv'][0]='Standard input code';
+        // LibCoverageOverride::Begin(LibCoverage::class);
+        // LibCoverageOverride::End();
+        // LibCoverageOverride::_()->showAllReport();
+
+        $_SERVER = $__SERVER;
+        LibCoverage::_()->cleanDirectory($path);
         LibCoverage::G($old);
         LibCoverage::End();
         
@@ -69,12 +86,8 @@ class SingletonExObject
     }
 
 }
-class LibCoverageEx extends LibCoverage
+class LibCoverageProject extends LibCoverage
 {
-    public function createReportTest()
-    {
-        return $this->createReport();
-    }
     public static function makeData($path)
     {
         @mkdir($path, 0777, true);
@@ -102,6 +115,15 @@ class App
 EOT;
         @mkdir($path.'src');
         file_put_contents($path.'src/App.php',$str);
+        @mkdir($path.'tests');
+    }
+
+}
+class LibCoverageEx extends LibCoverage
+{
+    public function createReportTest()
+    {
+        return $this->createReport();
     }
     public function doTestMore()
     {
@@ -134,14 +156,14 @@ class LibCoverageOverride extends LibCoverageEx
 }
 /*
 
-        $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
-        LibCoverage::G()->init(['path'=>$path]);
+        $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
+        LibCoverage::_()->init(['path'=>$path]);
         
         LibCoverage::Begin(LibCoverage::class);
 
-        $path = LibCoverage::G()->getClassTestPath(LibCoverage::class);
+        $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
 
-        LibCoverage::G()->showAllReport();
+        LibCoverage::_()->showAllReport();
         //// 次要流程
         //        $path = realpath($path);
         LibCoverage::CreateTestFiles(__DIR__.'/../src',$path);

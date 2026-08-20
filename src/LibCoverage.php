@@ -37,7 +37,10 @@ class LibCoverage
     protected static $_instances = [];
     
     //embed
-    public static function G($object = null)
+    /**
+     * @return static
+     */
+    public static function _($object = null)
     {
         if (defined('__SINGLETONEX_REPALACER')) {
             $callback = __SINGLETONEX_REPALACER;
@@ -55,6 +58,13 @@ class LibCoverage
         
         return $me;
     }
+     /**
+     * @return static
+     */
+    public static function G($object = null)
+    {
+        return static::_($object);
+    }
     public function __construct()
     {
     }
@@ -67,27 +77,7 @@ class LibCoverage
         return static::G()->doEnd();
     }
     ////////
-    protected function checkOverride($override_class)
-    {
-        if (empty($override_class)) {
-            return $this;
-        }
-        if (!class_exists($override_class)) {
-            return $this;
-        }
-        if (static::class === $override_class) {
-            return $this;
-        }
-        
-        $object = $override_class::G();
-        return $object;
-    }
     public function init(array $options, ?object $context = null)
-    {
-        $object = $this->checkOverride($options['override_class'] ?? null);
-        return $object->initAfterOverride($options, $context);
-    }
-    public function initAfterOverride(array $options, ?object $context = null)
     {
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
         $this->options['path'] = $this->options['path'] ?? getcwd().'/';
@@ -95,12 +85,11 @@ class LibCoverage
             $this->options['namespace'] = $this->getDefaultNamespaceByComposer();
         }
         $this->is_skip = $this->isSkip();
-        if (!is_dir($this->options['path_dump'])) {
-            mkdir($this->options['path_dump']);
-        }
-        if (!is_dir($this->options['path_report'])) {
-            mkdir($this->options['path_report']);
-        }
+        $this->make_sub_dir('path_dump');
+        $this->make_sub_dir('path_report');
+        
+
+        
         $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
         $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
         $this->coverage = new CodeCoverage(
@@ -268,7 +257,6 @@ class LibCoverage
         }
         $this->coverage->stop();
         
-        //@codeCoverageIgnoreStart
         $path = $this->getOutputPath();
         (new ReportOfPHP)->process($this->coverage, $path);
         $this->coverage = null;
@@ -277,26 +265,16 @@ class LibCoverage
     protected function getOutputPath()
     {
         $path = substr(str_replace('\\', '/', $this->test_class), strlen($this->options['namespace'].'\\'));
-        $path = realpath($this->options['path_dump']).'/'.$path .'.php';
+        $path = $this->getComponenetPathByKey('path_dump').$path .'.php';
         return $path;
     }
     protected function showResult()
     {
-        //debug_print_backtrace(2);
         echo "\n\033[42;30m".$this->test_class."\033[0m Test Done!";
-        if (class_exists(Assert::class)) {
-            Assert::assertTrue(true);
-        }
         echo "\n";
     }
     public function showAllReport()
     {
-        if($this->isSkip()){
-            if (class_exists(Assert::class)) {
-                Assert::assertTrue(true);
-            }
-            return;
-        }
         $data = $this->createReport();
         echo "\nSTART CREATE REPORT AT " .DATE(DATE_ATOM)."\n";
         echo "Output File:\n\n\033[42;30mfile://".$this->getComponenetPathByKey('path_report')."index.html" ."\033[0m\n";
@@ -424,26 +402,23 @@ EOT;
 EOT;
         return $ret;
     }
+    protected function make_sub_dir($path_key)
+    {
+        $path = $this->getComponenetPathByKey($path_key);
+        if (!is_dir($path)) {
+            mkdir($path);
+        }
+    }
     public function createProject()
     {
         $source = realpath(__DIR__.'/../').'/';
-        
-        if (!is_dir($this->options['path_dump'])) {
-            @mkdir($this->options['path_dump']);
-        }
-        if (!is_dir($this->options['path_report'])) {
-            @mkdir($this->options['path_report']);
-        }
-        if (!is_dir($this->options['path_test'])) {
-            @mkdir($this->options['path_test']);
-        }
-        if (!is_dir($this->options['path_data'])) {
-            @mkdir($this->options['path_data']);
-        }
-        
-        
+        $this->make_sub_dir('path_dump');
+        $this->make_sub_dir('path_report');
+        $this->make_sub_dir('path_test');
+        $this->make_sub_dir('path_data');
+
         $dest = $this->getComponenetPathByKey('path_test');
-        $path = $this->options['path'];
+        $path = realpath($this->options['path']).DIRECTORY_SEPARATOR;
         
         if (!file_exists($dest.'bootstrap.php')) {
             echo "Copy test boostrap file:  '{$dest}support.php' \n";
@@ -459,7 +434,7 @@ EOT;
         }
         
         
-        if (!file_exists('phpunit.xml')) {
+        if (!file_exists($path.'phpunit.xml')) {
             echo "Copy {$path}phpunit.xml \n";
             $data = file_get_contents($source.'phpunit.xml');
             $data = str_replace('LibCoverage', (string)$this->options['namespace'], (string)$data);
