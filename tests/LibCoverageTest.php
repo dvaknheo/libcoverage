@@ -21,8 +21,9 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageEx::_();
         LibCoverageEx::G(LibCoverageEx::_());
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
-        LibCoverageEx::_();
         LibCoverage::_($old);
+
+        LibCoverageEx::_();
 
         //*
         LibCoverageProject::makeData($path);
@@ -48,8 +49,6 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageProject::End();
         LibCoverage::Begin(LibCoverage::class);
         LibCoverageProject::_()->showAllReport();
-        
-                echo "zzzzzzzzzzzzzzzzzzzzzzzzz\n";
 
         //LibCoverageEx::_()->doTestMore();
         //LibCoverageEx::_()->addExtFile('t');

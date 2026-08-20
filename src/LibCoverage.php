@@ -234,6 +234,12 @@ class LibCoverage
     
     public function doBegin($class)
     {
+        $this->test_class = $class;
+
+        if ($this->isSkip()) {
+            return;
+        }
+
         // 先把当前正在运行的其他 coverage 停下来并 dump，防止数据被底层 driver 抢走
         if (self::$activeCoverageInstance !== null && self::$activeCoverageInstance !== $this) {
             $active = self::$activeCoverageInstance;
@@ -260,15 +266,10 @@ class LibCoverage
             );
         }
 
-        $this->test_class = $class;
         $this->setPath($this->classToPath($class));
         if ($this->extFile) {
             $target = $this->filter;
             $this->addPathToFilter($target, $this->extFile);
-        }
-        
-        if($this->isSkip()){
-            return;
         }
 
         self::$activeCoverageInstance = $this;
@@ -283,8 +284,8 @@ class LibCoverage
             }
             return;
         }
-        $this->coverage->stop();
         
+        $this->coverage->stop();
         $path = $this->getOutputPath();
         (new ReportOfPHP)->process($this->coverage, $path);
         $this->coverage = null;
