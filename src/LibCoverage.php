@@ -102,9 +102,6 @@ class LibCoverage
             mkdir($this->options['path_report']);
         }
         $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
-        // Ensure the driver sees all source files before it is created,
-        // otherwise Xdebug's code-coverage filter is set too early and
-        // misses files added later in doBegin().
         $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
         $this->coverage = new CodeCoverage(
             (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
@@ -163,10 +160,16 @@ class LibCoverage
     public function addExtFile($extFile)
     {
         $this->extFile = $extFile;
+        if ($this->filter !== null && file_exists($extFile)) {
+            $this->addPathToFilter($this->filter, $extFile);
+        }
     }
     ///////////////////////////
     protected function addPathToFilter($target, $path): void
     {
+        if (!file_exists($path)) {
+            return;
+        }
         if (is_file($path)) {
                 $target->includeFiles([$path]);
         } else {
@@ -186,12 +189,12 @@ class LibCoverage
         $path_dump = $this->getComponenetPathByKey('path_dump');
         $path_report = $this->getComponenetPathByKey('path_report');
         
-            $filter = new \SebastianBergmann\CodeCoverage\Filter();
-            $this->addPathToFilter($filter, $path_src);
-            $coverage = new CodeCoverage(
-                (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($filter),
-                $filter
-            );
+        $filter = new \SebastianBergmann\CodeCoverage\Filter();
+        $this->addPathToFilter($filter, $path_src);
+        $coverage = new CodeCoverage(
+            (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($filter),
+            $filter
+        );
         $coverage->setTests([
           'T' => [
             'size' => 'unknown',
@@ -206,20 +209,15 @@ class LibCoverage
             if (substr($file, -4) !== '.php') {
                 continue;
             }
-            // 要重复两遍才能 100% ，所以 ignore 得了，使用 include 会导致一个 Bug 。
-            $t = static::include_file($file);    //@codeCoverageIgnore
-            $coverage->merge($t);   //@codeCoverageIgnore
+            $t = static::include_file($file);
+            copy($file,$file.'.bak-'.DATE('Y-m-d_H-i-s'));
+            $coverage->merge($t);
         }
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
         $report = $coverage->getReport();
-        // PHP 7.4 (php-code-coverage 8.x) uses old method names, PHP 8.4 (php-code-coverage 10+) uses new
-        $lines_tested = method_exists($report, 'numberOfExecutedLines')
-            ? $report->numberOfExecutedLines()
-            : $report->getNumExecutedLines();
-        $lines_total = method_exists($report, 'numberOfExecutableLines')
-            ? $report->numberOfExecutableLines()
-            : $report->getNumExecutableLines();
+        $lines_tested =  $report->numberOfExecutedLines();
+        $lines_total =  $report->numberOfExecutableLines();
         $lines_percent = sprintf('%0.2f%%', $lines_tested / $lines_total * 100);
         return [
             'lines_tested' => $lines_tested,
@@ -275,8 +273,7 @@ class LibCoverage
         (new ReportOfPHP)->process($this->coverage, $path);
         $this->coverage = null;
         $this->showResult();
-        //@codeCoverageIgnoreEnd
-    }   //@codeCoverageIgnore
+    }
     protected function getOutputPath()
     {
         $path = substr(str_replace('\\', '/', $this->test_class), strlen($this->options['namespace'].'\\'));
