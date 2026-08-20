@@ -15,7 +15,6 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::Begin(LibCoverage::class);
         LibCoverage::_()->getClassTestPath(LibCoverage::class);
         LibCoverage::_()->cleanDirectory($path);
-        LibCoverage::_()->showAllReport();
         
         ////
         LibCoverageEx::_();
@@ -41,11 +40,11 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
 
         //ob_start();
         LibCoverage::_()->doPause();
-        LibCoverageProject::Begin("MyProject\\App");
+        LibCoverageProject::Begin(LibCoverageProject::class);
         LibCoverageProject::End();
         LibCoverage::_()->Begin(LibCoverage::class);
-
-        LibCoverageMore::_()->init(LibCoverage::_()->options);
+        LibCoverageProject::_()->showAllReport();
+        LibCoverageMore::_()->init(LibCoverageProject::_()->options);
         LibCoverageMore::_()->testProtectedMethods();
         //LibCoverageProject::_()->showAllReport();
 
@@ -114,6 +113,11 @@ class App
 EOT;
         @mkdir($path.'src');
         file_put_contents($path.'src/App.php',$str);
+        @mkdir($path.'src/sub');
+        file_put_contents($path.'src/sub/emptyfile.txt', DATE(DATE_ATOM));
+
+        @mkdir($path.'path_dump');
+        file_put_contents($path.'path_dump/emptyfile.txt', DATE(DATE_ATOM));
         @mkdir($path.'tests');
     }
 

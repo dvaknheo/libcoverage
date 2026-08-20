@@ -401,7 +401,7 @@ EOT;
         foreach ($funcs as $v) {
             $v = str_replace(['&','callable '], ['',''], $v);
             $ret .= <<<EOT
-        {$InitClass}::G()->$v;
+        {$InitClass}::_()->$v;
 
 EOT;
         }
