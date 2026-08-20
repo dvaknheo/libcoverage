@@ -39,16 +39,14 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageProject::_()->createProject();
         LibCoverageProject::_()->createProject();
 
-        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-        include $path.'src/App.php';
         //ob_start();
         LibCoverage::_()->doPause();
         LibCoverageProject::Begin("MyProject\\App");
-        try{
-            (new \MyProject\App)->foo();
-        }catch(\Exception $ex){};
         LibCoverageProject::End();
         LibCoverage::_()->Begin(LibCoverage::class);
+
+        LibCoverageMore::_()->init(LibCoverage::_()->options);
+        LibCoverageMore::_()->testProtectedMethods();
         //LibCoverageProject::_()->showAllReport();
 
         //LibCoverageEx::_()->doTestMore();
@@ -151,6 +149,27 @@ class LibCoverageEx extends LibCoverage
     }
     //
 }
+class LibCoverageMore extends LibCoverage
+{
+    protected function isSkip()
+    {
+        return true;
+    }
+    public function testProtectedMethods()
+    {
+        //getComponenetPathByKey('');
+        $this->options['path'] = LibCoverage::_()->getClassTestPath(LibCoverage::class);
+        $this->options['path_dump'] = LibCoverage::_()->getClassTestPath(LibCoverage::class).$this->options['path_dump'] ;
+
+        $this->addExtFile(__FILE__);
+        $this->pre_begin(LibCoverageMore::class);
+        $this->doBegin(LibCoverageMore::class);
+        $this->doEnd();
+        $this->post_end();
+    }
+
+}
+
 class LibCoverageOverride extends LibCoverageEx
 {
 

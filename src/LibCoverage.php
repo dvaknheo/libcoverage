@@ -87,14 +87,18 @@ class LibCoverage
         $this->make_sub_dir('path_dump');
         $this->make_sub_dir('path_report');
 
+        $this->create_coverage();
+
+        $this->is_inited = true;
+        return $this;
+    }
+    protected function create_coverage()
+    {
         $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
         $this->coverage = new CodeCoverage(
             (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
             $this->filter
         );
-
-        $this->is_inited = true;
-        return $this;
     }
     protected function isSkip()
     {
@@ -114,12 +118,23 @@ class LibCoverage
         );
         return $flag;
     }
+    protected static function IsAbsPath($path)
+    {
+        if (DIRECTORY_SEPARATOR === '/') {
+            // Linux
+            return substr($path, 0, 1) === '/'; // @codeCoverageIgnore
+        }
+        // Windows
+        return (bool) preg_match('/^([a-zA-Z]:[\\\\\/]?|\\\\\\\\)/', $path); // @codeCoverageIgnore
+    }
     protected function getComponenetPathByKey($path_key)
     {
-        if (substr($this->options[$path_key], 0, 1) === '/') {
-            return rtrim($this->options[$path_key], '/').'/';
+        $full_file = $this->options[$path_key];
+        $is_abs = static::IsAbsPath($full_file);
+        if ($is_abs) {
+            return rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
         } else {
-            return $this->options['path'].rtrim($this->options[$path_key], '/').'/';
+            return $this->options['path'].rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
         }
     }
     protected function getDefaultNamespaceByComposer()
@@ -139,7 +154,8 @@ class LibCoverage
     public function getClassTestPath($class)
     {
         $path_data = $this->getComponenetPathByKey('path_data');
-        $ret = rtrim($path_data, '/') .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).'/';
+        $ret = rtrim($path_data, DIRECTORY_SEPARATOR) .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).DIRECTORY_SEPARATOR;
+        $ret = str_replace(['\\','/'],[DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR], $ret);
         return $ret;
     }
     public function addExtFile($extFile)
@@ -151,7 +167,7 @@ class LibCoverage
     protected function addPathToFilter($target, $path): void
     {
         if (!file_exists($path)) {
-            return;         //@codeCoverageIgnore
+            return; //@codeCoverageIgnore
 
         }
         if (is_file($path)) {
@@ -213,12 +229,7 @@ class LibCoverage
     {
         return include $file;
     }
-    //@forOverride
-    protected function setPath($path)
-    {
-        $target = $this->filter;
-        $this->addPathToFilter($target, $path);
-    }
+
     //@forOverride
     protected function classToPath($class)
     {
@@ -236,30 +247,17 @@ class LibCoverage
         if ($this->isSkip()) {
             return;
         }
-        // 确保当前 coverage/filter 可用
-        if ($this->coverage === null) {
-            if ($this->filter === null) {
-                $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
-                $this->addPathToFilter($this->filter, $this->classToPath($class));
-            }
-            if ($this->extFile) {
-                $this->addPathToFilter($this->filter, $this->extFile);
-            }
-            $this->coverage = new CodeCoverage(
-                (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
-                $this->filter
-            );
-        }
-
-        $this->setPath($this->classToPath($class));
-        if ($this->extFile) {
-            $target = $this->filter;
-            $this->addPathToFilter($target, $this->extFile);
-        }
-
-        $this->coverage->start("id_" . $class);
+        $this->pre_begin($class); //@codeCoverageIgnore
+        $this->coverage->start($class);//@codeCoverageIgnore
     }
-    
+    protected function pre_begin($class)
+    {
+        $this->addPathToFilter($this->filter, $this->classToPath($class));
+        if ($this->extFile) {
+            $this->addPathToFilter($this->filter, $this->extFile);
+        }
+
+    }
     public function doEnd()
     {
         if($this->isSkip()){
@@ -268,11 +266,13 @@ class LibCoverage
             }
             return;
         }
-        
         $this->coverage->stop();
+        $this->post_end();//@codeCoverageIgnore
+    }
+    protected function post_end()
+    {
         $path = $this->getOutputPath();
         (new ReportOfPHP)->process($this->coverage, $path);
-        $this->coverage = null;
         $this->showResult();
     }
     protected function getOutputPath()
