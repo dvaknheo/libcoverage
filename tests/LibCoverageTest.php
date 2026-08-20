@@ -22,7 +22,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageEx::G(LibCoverageEx::_());
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
         LibCoverageEx::_();
-
+        LibCoverage::_($old);
 
         //*
         LibCoverageProject::makeData($path);
@@ -45,7 +45,8 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         try{
             (new \MyProject\App)->foo();
         }catch(\Exception $ex){};
-        // LibCoverageProject::End();
+        LibCoverageProject::End();
+        LibCoverage::Begin(LibCoverage::class);
         LibCoverageProject::_()->showAllReport();
         
                 echo "zzzzzzzzzzzzzzzzzzzzzzzzz\n";

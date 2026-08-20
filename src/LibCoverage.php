@@ -35,6 +35,7 @@ class LibCoverage
     protected $is_skip = false;
 
     protected static $_instances = [];
+    protected static $activeCoverageInstance = null;
     
     //embed
     /**
@@ -233,7 +234,32 @@ class LibCoverage
     
     public function doBegin($class)
     {
-        
+        // 先把当前正在运行的其他 coverage 停下来并 dump，防止数据被底层 driver 抢走
+        if (self::$activeCoverageInstance !== null && self::$activeCoverageInstance !== $this) {
+            $active = self::$activeCoverageInstance;
+            if ($active->coverage !== null) {
+                $active->coverage->stop();
+                $activePath = $active->getOutputPath();
+                (new ReportOfPHP)->process($active->coverage, $activePath);
+            }
+            self::$activeCoverageInstance = null;
+        }
+
+        // 确保当前 coverage/filter 可用
+        if ($this->coverage === null) {
+            if ($this->filter === null) {
+                $this->filter = new \SebastianBergmann\CodeCoverage\Filter();
+                $this->addPathToFilter($this->filter, $this->getComponenetPathByKey('path_src'));
+            }
+            if ($this->extFile) {
+                $this->addPathToFilter($this->filter, $this->extFile);
+            }
+            $this->coverage = new CodeCoverage(
+                (new \SebastianBergmann\CodeCoverage\Driver\Selector())->forLineCoverage($this->filter),
+                $this->filter
+            );
+        }
+
         $this->test_class = $class;
         $this->setPath($this->classToPath($class));
         if ($this->extFile) {
@@ -244,6 +270,8 @@ class LibCoverage
         if($this->isSkip()){
             return;
         }
+
+        self::$activeCoverageInstance = $this;
         $this->coverage->start($class);
     }
     
@@ -260,6 +288,9 @@ class LibCoverage
         $path = $this->getOutputPath();
         (new ReportOfPHP)->process($this->coverage, $path);
         $this->coverage = null;
+        if (self::$activeCoverageInstance === $this) {
+            self::$activeCoverageInstance = null;
+        }
         $this->showResult();
     }
     protected function getOutputPath()

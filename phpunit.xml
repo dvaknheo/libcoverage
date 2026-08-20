@@ -13,6 +13,7 @@
     <testsuites>
         <testsuite name="LibCoverage Test Suite">
             <directory>./tests/</directory>
+            <exclude>./tests/data_for_tests</exclude>
         </testsuite>
         <testsuite name="LibCoverage CodeCoverage">
              <file>tests/support.php</file>
