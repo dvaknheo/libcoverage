@@ -105,12 +105,13 @@ class GroupCoverageRunner
     public function doBegin(string $name, string $group = ''): void
     {
         $this->pre_begin($name, $group);    // @codeCoverageIgnore
+        LibCoverage::_()->doPause();
         $this->coverage->start($name);      // @codeCoverageIgnore
     }
     protected function pre_begin(string $name, string $group = ''): void
     {
         if (!$this->coverage) {
-            $this->coverage = $this->createCoverage();
+            $this->coverage = $this->createCoverage(); // @codeCoverageIgnore
         }
         $this->current_name = $name;
         $this->current_group = ($group !== '') ? $group : (string) ($this->options['group'] ?? '');
@@ -123,8 +124,9 @@ class GroupCoverageRunner
      */
     public function doEnd(): void
     {
-        $this->coverage->stop(); // @codeCoverageIgnore
-        $this->post_end();// @codeCoverageIgnore
+        $this->coverage->stop();        // @codeCoverageIgnore
+        LibCoverage::_()->doResume();   // @codeCoverageIgnore
+        $this->post_end();
     }
     protected function post_end()
     {

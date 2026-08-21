@@ -8,7 +8,6 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
     public function testAll()
     {
         $__SERVER = $_SERVER;
-        $pwd = getcwd();
         $old = LibCoverage::_();
 
         $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
@@ -46,25 +45,6 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageProject::_()->showAllReport();
         LibCoverageMore::_()->init(LibCoverageProject::_()->options);
         LibCoverageMore::_()->testProtectedMethods();
-        //LibCoverageProject::_()->showAllReport();
-
-        //LibCoverageEx::_()->doTestMore();
-        //LibCoverageEx::_()->addExtFile('t');
-        
-        ////]]]]
-        //LibCoverageEx::G(new LibCoverageEx)->init($old->options)->createReportTest(); //这个想测 include 那段，没成
-
-        //*/
-        ///override
-        // LibCoverageOverride::_()->init(['override_class'=>LibCoverageEx::class]);
-        // LibCoverageOverride::_()->init(['override_class'=>'NoExists']);
-        // LibCoverageOverride::_()->init(['override_class'=>LibCoverageOverride::class]);
-
-        // $t=$_SERVER;
-        // $_SERVER['argv'][0]='Standard input code';
-        // LibCoverageOverride::Begin(LibCoverage::class);
-        // LibCoverageOverride::End();
-        // LibCoverageOverride::_()->showAllReport();
 
         $_SERVER = $__SERVER;
         LibCoverage::_()->cleanDirectory($path);
@@ -174,10 +154,6 @@ class LibCoverageMore extends LibCoverage
 
 }
 
-class LibCoverageOverride extends LibCoverageEx
-{
-
-}
 /*
 
         $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
