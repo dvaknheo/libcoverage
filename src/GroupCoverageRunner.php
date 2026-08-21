@@ -36,11 +36,11 @@ class GroupCoverageRunner
     protected $current_group = '';
 
     protected static $_instances = [];
-    public static function G($object = null)
-    {
-        return static::G($object);
-    }
+
     //embed
+    /**
+     * @return static
+     */
     public static function _($object = null)
     {
         if (defined('__SINGLETONEX_REPALACER')) {
@@ -61,15 +61,13 @@ class GroupCoverageRunner
     public function __construct()
     {
     }
+    /**
+     * @return static
+     */
     public function init(array $options, ?object $context = null)
     {
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
-        try {
-            $this->coverage = $this->createCoverage();
-        } catch (\Throwable $e) {
-            // 无覆盖驱动(xdebug/pcov)时延迟到 begin 再创建，保证 CLI 命令可用
-            $this->coverage = null;
-        }
+        $this->coverage = $this->createCoverage();
         $this->is_inited = true;
         return $this;
     }
@@ -91,8 +89,9 @@ class GroupCoverageRunner
         }
         $this->current_name = $name;
         $this->current_group = ($group !== '') ? $group : (string) ($this->options['group'] ?? '');
-        static::includePath($this->coverage, (string) $this->options['path_src']);
-        // php-code-coverage 9.x:start($id,$append=true);11.x:start($id,?TestSize $size=null)。不传第二参数两版兼容
+
+        $this->includePath($this->coverage, (string) $this->options['path_src']);
+
         $this->coverage->start($name);
         $this->is_begin = true;
     }
@@ -106,9 +105,13 @@ class GroupCoverageRunner
             return; // 防止重复调用
         }
         $this->coverage->stop();
+        $this->post_end();  //@codeCoverageIgnore
+        $this->is_begin = false; //@codeCoverageIgnore
+    }
+    protected function post_end()
+    {
         $file = (string) $this->options['path_dump'] . $this->current_group . '/' . md5($this->current_name) . '.php';
         (new ReportOfPHP)->process($this->coverage, $file);
-        $this->is_begin = false;
     }
     /**
      * 生成报告：新建 coverage 收录源码 -> 按组合并 dump -> 补全部分覆盖文件 -> 渲染 HTML 并统计。
@@ -122,7 +125,7 @@ class GroupCoverageRunner
             $groups = [(string) ($this->options['group'] ?? '')];
         }
         $coverage = $this->createCoverage();
-        static::includePath($coverage, $path_src);
+        $this->includePath($coverage, $path_src);
         $coverage->setTests([
           'T' => [
             'size' => 'unknown',
@@ -130,12 +133,12 @@ class GroupCoverageRunner
           ],
         ]);
         foreach ($groups as $group) {
-            static::mergeFromDir($coverage, $path_dump . $group);
+            $this->mergeFromDir($coverage, $path_dump . $group);
         }
         // 补全部分覆盖文件：未执行的可执行行加入 lineCoverage（空数组），
         // 否则报告只统计已执行行，部分覆盖文件会错误显示为 100%
-        static::fillPartialCoveredFiles($coverage);
-        return static::renderReport($coverage, $path_report);
+        $this->fillPartialCoveredFiles($coverage);
+        return $this->renderReport($coverage, $path_report);
     }
     /**
      * createReport() + 打印展示（对齐 LibCoverage 风格：Output File / Test Lines）。
@@ -158,9 +161,6 @@ class GroupCoverageRunner
         echo "\n\n";
         return $data;
     }
-    /////////////////////////////
-    // 以下为内部实现（兼容 php-code-coverage 9.x / 11.x）
-    /////////////////////////////
     /**
      * 创建 CodeCoverage。php-code-coverage 9.x 起必须显式传入 Driver + Filter
      */
@@ -173,13 +173,9 @@ class GroupCoverageRunner
     /**
      * 把目录或文件加入 filter。9.x 用 includeDirectory;11.x 已移除,需展开目录(只收录 .php)
      */
-    protected static function includePath(CodeCoverage $coverage, string $path): void
+    protected function includePath(CodeCoverage $coverage, string $path): void
     {
         $filter = $coverage->filter();
-        if (method_exists($filter, 'includeDirectory')) {
-            $filter->includeDirectory($path); // 9.x 只收录 .php 文件 // @codeCoverageIgnore
-            return; // @codeCoverageIgnore
-        }
         if (is_file($path)) {
             if (substr($path, -4) === '.php') {
                 $filter->includeFile($path);
@@ -199,7 +195,7 @@ class GroupCoverageRunner
     /**
      * 合并目录下所有 dump 文件到 coverage
      */
-    protected static function mergeFromDir(CodeCoverage $coverage, string $dir): void
+    protected function mergeFromDir(CodeCoverage $coverage, string $dir): void
     {
         if (!is_dir($dir)) {
             return; // 组目录不存在(未采集过),跳过而非报错
@@ -208,9 +204,8 @@ class GroupCoverageRunner
         $iterator = new \RecursiveIteratorIterator($directory);
         $files = \iterator_to_array($iterator, false);
         foreach ($files as $file) {
-            // 要重复两遍才能 100% ，所以 ignore 得了，使用 include 会导致一个 Bug 。
-            $t = include $file;    //@codeCoverageIgnore
-            $coverage->merge($t);   //@codeCoverageIgnore
+            $t = include $file;
+            $coverage->merge($t);
         }
     }
     /**
@@ -218,7 +213,7 @@ class GroupCoverageRunner
      * php-code-coverage 9.x 只对"完全未覆盖"文件补未执行行（addUncoveredFilesFromFilter），
      * 部分覆盖文件若缺失未执行行，报告会把该文件错误统计为 100%。
      */
-    protected static function fillPartialCoveredFiles(CodeCoverage $coverage): void
+    protected function fillPartialCoveredFiles(CodeCoverage $coverage): void
     {
         $analyser = new \SebastianBergmann\CodeCoverage\StaticAnalysis\ParsingFileAnalyser(true, false);
         $lineCoverage = $coverage->getData()->lineCoverage();
@@ -239,7 +234,7 @@ class GroupCoverageRunner
      *
      * @return array{lines_tested:int, lines_total:int, lines_percent:string}
      */
-    protected static function renderReport(CodeCoverage $coverage, string $path_report): array
+    protected function renderReport(CodeCoverage $coverage, string $path_report): array
     {
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         $report = $coverage->getReport();
