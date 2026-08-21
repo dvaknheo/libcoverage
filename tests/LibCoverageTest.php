@@ -42,7 +42,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::_()->doPause();
         LibCoverageProject::Begin(LibCoverageProject::class);
         LibCoverageProject::End();
-        LibCoverage::_()->Begin(LibCoverage::class);
+        LibCoverage::_()->doResume();
         LibCoverageProject::_()->showAllReport();
         LibCoverageMore::_()->init(LibCoverageProject::_()->options);
         LibCoverageMore::_()->testProtectedMethods();

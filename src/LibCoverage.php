@@ -240,6 +240,10 @@ class LibCoverage
     {
         $this->coverage->stop();
     }
+    public function doResume()
+    {
+        $this->doBegin($this->test_class); //@codeCoverageIgnore
+    }
     public function doBegin($class)
     {
         $this->test_class = $class;
