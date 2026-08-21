@@ -21,17 +21,15 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 class GroupCoverageRunner
 {
     public $options = [
+        'path'  => '',
         'path_src' => 'src/',
         'path_dump' => 'test_coveragedumps',
         'path_report' => 'test_reports',
-        'group' => '',
         'groups' => [],
-        'name' => '',
     ];
     public $is_inited = false;
 
     protected $coverage;
-    protected $is_begin = false;
     protected $current_name = '';
     protected $current_group = '';
 
@@ -61,6 +59,26 @@ class GroupCoverageRunner
     public function __construct()
     {
     }
+    protected static function IsAbsPath($path)
+    {
+        if (DIRECTORY_SEPARATOR === '/') {
+            // Linux
+            return substr($path, 0, 1) === '/'; // @codeCoverageIgnore
+        }
+        // Windows
+        return (bool) preg_match('/^([a-zA-Z]:[\\\\\/]?|\\\\\\\\)/', $path); // @codeCoverageIgnore
+    }
+    protected function getComponenetPathByKey($path_key)
+    {
+        $full_file = $this->options[$path_key];
+        $is_abs = static::IsAbsPath($full_file);
+        if ($is_abs) {
+            return rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        } else {
+            return $this->options['path'].rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        }
+    }
+
     /**
      * @return static
      */
@@ -69,6 +87,11 @@ class GroupCoverageRunner
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
         $this->coverage = $this->createCoverage();
         $this->is_inited = true;
+        $this->options['path'] = realpath($this->options['path']).DIRECTORY_SEPARATOR;
+        $path_dump = $this->getComponenetPathByKey('path_dump');
+        @mkdir($path_dump);
+        $path_report = $this->getComponenetPathByKey('path_report');
+        @mkdir($path_report);
         return $this;
     }
     public function getCoverage()
@@ -81,9 +104,11 @@ class GroupCoverageRunner
      */
     public function doBegin(string $name, string $group = ''): void
     {
-        if ($this->is_begin) {
-            return; // 防止重复调用
-        }
+        $this->pre_begin($name, $group);    // @codeCoverageIgnore
+        $this->coverage->start($name);      // @codeCoverageIgnore
+    }
+    protected function pre_begin(string $name, string $group = ''): void
+    {
         if (!$this->coverage) {
             $this->coverage = $this->createCoverage();
         }
@@ -91,9 +116,6 @@ class GroupCoverageRunner
         $this->current_group = ($group !== '') ? $group : (string) ($this->options['group'] ?? '');
 
         $this->includePath($this->coverage, (string) $this->options['path_src']);
-
-        $this->coverage->start($name);
-        $this->is_begin = true;
     }
     /**
      * 结束采集并 dump：stop + Report\PHP 序列化到 {path_dump}/{group}/{md5(name)}.php。
@@ -101,16 +123,15 @@ class GroupCoverageRunner
      */
     public function doEnd(): void
     {
-        if (!$this->is_begin) {
-            return; // 防止重复调用
-        }
-        $this->coverage->stop();
-        $this->post_end();  //@codeCoverageIgnore
-        $this->is_begin = false; //@codeCoverageIgnore
+        $this->coverage->stop(); // @codeCoverageIgnore
+        $this->post_end();// @codeCoverageIgnore
     }
     protected function post_end()
     {
-        $file = (string) $this->options['path_dump'] . $this->current_group . '/' . md5($this->current_name) . '.php';
+        $path_dump = $this->getComponenetPathByKey('path_dump');
+        $path_dump .= $this->current_group;
+        @mkdir($path_dump);
+        $file = (string)  $path_dump. DIRECTORY_SEPARATOR . \md5($this->current_name) . '.php';
         (new ReportOfPHP)->process($this->coverage, $file);
     }
     /**
@@ -133,11 +154,13 @@ class GroupCoverageRunner
           ],
         ]);
         foreach ($groups as $group) {
+            $path_dump = $this->getComponenetPathByKey('path_dump').$group;
             $this->mergeFromDir($coverage, $path_dump . $group);
         }
         // 补全部分覆盖文件：未执行的可执行行加入 lineCoverage（空数组），
         // 否则报告只统计已执行行，部分覆盖文件会错误显示为 100%
         $this->fillPartialCoveredFiles($coverage);
+        $path_report = $this->getComponenetPathByKey('path_report');
         return $this->renderReport($coverage, $path_report);
     }
     /**
@@ -148,14 +171,16 @@ class GroupCoverageRunner
      */
     public function showAllReport(): array
     {
+        // 准备废弃
         $data = $this->createReport(
             (string) $this->options['path_src'],
             (array) ($this->options['groups'] ?? []),
             (string) $this->options['path_dump'],
             (string) $this->options['path_report']
         );
+        $path_report = $this->getComponenetPathByKey('path_dump');
         echo "\nSTART CREATE REPORT AT " . DATE(DATE_ATOM) . "\n";
-        echo "Output File:\n\n\033[42;30mfile://" . rtrim((string) $this->options['path_report'], '/\\') . "/index.html" . "\033[0m\n";
+        echo "Output File:\n\n\033[42;30mfile://" .$path_report. "/index.html" . "\033[0m\n";
         echo "\n\033[42;30m All Done \033[0m Test Done!";
         echo "\nTest Lines: \033[42;30m{$data['lines_tested']}/{$data['lines_total']}({$data['lines_percent']})\033[0m\n";
         echo "\n\n";
@@ -176,12 +201,6 @@ class GroupCoverageRunner
     protected function includePath(CodeCoverage $coverage, string $path): void
     {
         $filter = $coverage->filter();
-        if (is_file($path)) {
-            if (substr($path, -4) === '.php') {
-                $filter->includeFile($path);
-            }
-            return;
-        }
         $directory = new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
         $iterator = new \RecursiveIteratorIterator($directory);
         $files = [];
@@ -192,13 +211,11 @@ class GroupCoverageRunner
         }
         $filter->includeFiles($files);
     }
-    /**
-     * 合并目录下所有 dump 文件到 coverage
-     */
     protected function mergeFromDir(CodeCoverage $coverage, string $dir): void
     {
+        //TODO 不是 dump 文件，还要和ID
         if (!is_dir($dir)) {
-            return; // 组目录不存在(未采集过),跳过而非报错
+            return; // @codeCoverageIgnore
         }
         $directory = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
         $iterator = new \RecursiveIteratorIterator($directory);
@@ -219,11 +236,11 @@ class GroupCoverageRunner
         $lineCoverage = $coverage->getData()->lineCoverage();
         foreach ($coverage->filter()->files() as $file) {
             if (!isset($lineCoverage[$file])) {
-                continue; // 完全未覆盖文件由框架的 addUncoveredFilesFromFilter 处理
+                continue;    // @codeCoverageIgnore
             }
             foreach (array_keys($analyser->executableLinesIn($file)) as $line) {
                 if (!isset($lineCoverage[$file][$line])) {
-                    $lineCoverage[$file][$line] = [];
+                    $lineCoverage[$file][$line] = [];  // @codeCoverageIgnore
                 }
             }
         }
