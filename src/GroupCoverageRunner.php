@@ -142,11 +142,8 @@ class GroupCoverageRunner
      *
      * @return array{lines_tested:int, lines_total:int, lines_percent:string}
      */
-    public function createReport(string $path_src, array $groups, string $path_dump, string $path_report): array
+    public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
     {
-        if (empty($groups)) {
-            $groups = [(string) ($this->options['group'] ?? '')];
-        }
         $coverage = $this->createCoverage();
         $this->includePath($coverage, $path_src);
         $coverage->setTests([
@@ -156,42 +153,17 @@ class GroupCoverageRunner
           ],
         ]);
         foreach ($groups as $group) {
-            $path_dump = $this->getComponenetPathByKey('path_dump').$group;
-            $this->mergeFromDir($coverage, $path_dump . $group);
+            $this->mergeFromDir($coverage, $path_dump.$group);
         }
         // 补全部分覆盖文件：未执行的可执行行加入 lineCoverage（空数组），
         // 否则报告只统计已执行行，部分覆盖文件会错误显示为 100%
         $this->fillPartialCoveredFiles($coverage);
-        $path_report = $this->getComponenetPathByKey('path_report');
         return $this->renderReport($coverage, $path_report);
-    }
-    /**
-     * createReport() + 打印展示（对齐 LibCoverage 风格：Output File / Test Lines）。
-     * 参数从 options 读取（path_src/path_dump/path_report/groups）。
-     *
-     * @return array{lines_tested:int, lines_total:int, lines_percent:string}
-     */
-    public function showAllReport(): array
-    {
-        // 准备废弃
-        $data = $this->createReport(
-            (string) $this->options['path_src'],
-            (array) ($this->options['groups'] ?? []),
-            (string) $this->options['path_dump'],
-            (string) $this->options['path_report']
-        );
-        $path_report = $this->getComponenetPathByKey('path_dump');
-        echo "\nSTART CREATE REPORT AT " . DATE(DATE_ATOM) . "\n";
-        echo "Output File:\n\n\033[42;30mfile://" .$path_report. "/index.html" . "\033[0m\n";
-        echo "\n\033[42;30m All Done \033[0m Test Done!";
-        echo "\nTest Lines: \033[42;30m{$data['lines_tested']}/{$data['lines_total']}({$data['lines_percent']})\033[0m\n";
-        echo "\n\n";
-        return $data;
     }
     /**
      * 创建 CodeCoverage。php-code-coverage 9.x 起必须显式传入 Driver + Filter
      */
-    protected static function createCoverage(): CodeCoverage
+    protected function createCoverage(): CodeCoverage
     {
         $filter = new CodeCoverageFilter();
         $driver = (new CodeCoverageSelector())->forLineCoverage($filter);
@@ -215,7 +187,6 @@ class GroupCoverageRunner
     }
     protected function mergeFromDir(CodeCoverage $coverage, string $dir): void
     {
-        //TODO 不是 dump 文件，还要和ID
         if (!is_dir($dir)) {
             return; // @codeCoverageIgnore
         }

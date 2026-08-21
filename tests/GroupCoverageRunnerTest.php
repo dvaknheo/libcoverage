@@ -15,7 +15,7 @@ class GroupCoverageRunnerTest extends \PHPUnit\Framework\TestCase
         @mkdir($path);
         $this->makeData($path);
 
-        GroupCoverageRunner::_(GroupCoverageRunner::_());
+        GroupCoverageRunner::_(GroupCoverageRunnerEx::_());
         GroupCoverageRunner::_()->init([
             'path' => $path,
             'path_src' => $path.'src/',
@@ -35,7 +35,8 @@ class GroupCoverageRunnerTest extends \PHPUnit\Framework\TestCase
         }
         GroupCoverageRunner::_()->doEnd();
 
-        GroupCoverageRunner::_()->showAllReport();
+        //createReport(array $groups, string $path_src, string $path_dump, string $path_report);
+        GroupCoverageRunnerEx::_()->testCreateReport();
 
        
 
@@ -78,4 +79,18 @@ class GroupCoverageSingletonExObject
         return $_instance[$class];
     }
 
+}
+class GroupCoverageRunnerEx extends GroupCoverageRunner
+{
+    public function testCreateReport()
+    {
+        //createReport(array $groups, string $path_src, string $path_dump, string $path_report);
+        $groups = ['group1'];
+        $path = LibCoverage::_()->getClassTestPath(GroupCoverageRunner::class);
+        $path_src = $path.'src/';
+        $path_dump = $path.'path_dump/';
+        $path_report = $path.'path_report/';
+
+        GroupCoverageRunnerEx::_()->createReport($groups, $path_src,  $path_dump, $path_report);
+    }
 }
