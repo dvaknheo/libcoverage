@@ -238,11 +238,15 @@ class LibCoverage
     }
     public function doPause()
     {
-        $this->coverage->stop();
+        if ($this->test_class && $this->coverage) {
+            $this->coverage->stop();
+        }
     }
     public function doResume()
     {
-        $this->doBegin($this->test_class); //@codeCoverageIgnore
+        if ($this->test_class) {                //@codeCoverageIgnore
+            $this->doBegin($this->test_class);  //@codeCoverageIgnore
+        }
     }
     public function doBegin($class)
     {
