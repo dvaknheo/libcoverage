@@ -143,7 +143,7 @@ class LibCoverage
         $data = json_decode((string)$data, true);
         $map = $data['autoload']['psr-4'];
         $namespaces = array_flip($map);
-        $namespace = $namespaces[$this->options['path_src']] ?? '';
+        $namespace = $namespaces[$this->options['path_src']] ?? ( $namespaces[$this->options['path_src'].'/']??'');
         $namespace = rtrim($namespace, '\\');
         return $namespace;
     }
