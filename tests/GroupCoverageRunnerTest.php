@@ -26,7 +26,7 @@ class GroupCoverageRunnerTest extends \PHPUnit\Framework\TestCase
         $name = 'test1;a,b,c';
         $group = 'group1';
         GroupCoverageRunner::_()->getCoverage();
-        GroupCoverageRunner::_()->doBegin($name, $group);
+        GroupCoverageRunner::_()->doBegin($name, $group, $path.'src/', $path.'path_dump/',);
         try{
             include $path."src/App.php";
             (new \GroupCoverageRunnerApp)->foo();
@@ -66,6 +66,7 @@ EOT;
         file_put_contents($path.'src/emptyfile.txt', DATE(DATE_ATOM));
         
         file_put_contents($path.'src/no_tested.php', DATE(DATE_ATOM));
+        @mkdir($path.'path_dump/');
     }
 
 }

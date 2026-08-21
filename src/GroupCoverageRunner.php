@@ -21,15 +21,11 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 class GroupCoverageRunner
 {
     public $options = [
-        'path'  => '',
-        'path_src' => 'src/',
-        'path_dump' => 'test_coveragedumps',
-        'path_report' => 'test_reports',
-        'groups' => [],
     ];
     public $is_inited = false;
 
     protected $coverage;
+    protected $current_path_dump = '';
     protected $current_name = '';
     protected $current_group = '';
 
@@ -59,25 +55,6 @@ class GroupCoverageRunner
     public function __construct()
     {
     }
-    protected static function IsAbsPath($path)
-    {
-        if (DIRECTORY_SEPARATOR === '/') {
-            // Linux
-            return substr($path, 0, 1) === '/'; // @codeCoverageIgnore
-        }
-        // Windows
-        return (bool) preg_match('/^([a-zA-Z]:[\\\\\/]?|\\\\\\\\)/', $path); // @codeCoverageIgnore
-    }
-    protected function getComponenetPathByKey($path_key)
-    {
-        $full_file = $this->options[$path_key];
-        $is_abs = static::IsAbsPath($full_file);
-        if ($is_abs) {
-            return rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        } else {
-            return $this->options['path'].rtrim($this->options[$path_key], DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        }
-    }
 
     /**
      * @return static
@@ -87,11 +64,6 @@ class GroupCoverageRunner
         $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
         $this->coverage = $this->createCoverage();
         $this->is_inited = true;
-        $this->options['path'] = realpath($this->options['path']).DIRECTORY_SEPARATOR;
-        $path_dump = $this->getComponenetPathByKey('path_dump');
-        @mkdir($path_dump);
-        $path_report = $this->getComponenetPathByKey('path_report');
-        @mkdir($path_report);
         return $this;
     }
     public function getCoverage()
@@ -102,21 +74,22 @@ class GroupCoverageRunner
      * 开始采集：懒创建 coverage + 收录源码目录(options['path_src']) + start（内部防重入）。
      * 测试名与组名由参数传入（组名为空时回落到 options['group']），供 doEnd() 无参 dump 使用。
      */
-    public function doBegin(string $name, string $group = ''): void
+    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
     {
-        $this->pre_begin($name, $group);    // @codeCoverageIgnore
+        $this->pre_begin($name, $group,$path_src, $path_dump);    // @codeCoverageIgnore
         LibCoverage::_()->doPause();
         $this->coverage->start($name);      // @codeCoverageIgnore
     }
-    protected function pre_begin(string $name, string $group = ''): void
+    protected function pre_begin(string $name, string $group, string $path_src,string $path_dump): void
     {
         if (!$this->coverage) {
             $this->coverage = $this->createCoverage(); // @codeCoverageIgnore
         }
+        $this->current_path_dump = $path_dump;
         $this->current_name = $name;
-        $this->current_group = ($group !== '') ? $group : (string) ($this->options['group'] ?? '');
+        $this->current_group =  $group;
 
-        $this->includePath($this->coverage, (string) $this->options['path_src']);
+        $this->includePath($this->coverage, $path_src);
     }
     /**
      * 结束采集并 dump：stop + Report\PHP 序列化到 {path_dump}/{group}/{md5(name)}.php。
@@ -130,12 +103,14 @@ class GroupCoverageRunner
     }
     protected function post_end()
     {
-        $path_dump = $this->getComponenetPathByKey('path_dump');
+        $path_dump = $this->current_path_dump;
+        @mkdir($path_dump);
         $path_dump .= $this->current_group;
         @mkdir($path_dump);
         $file = (string)  $path_dump. DIRECTORY_SEPARATOR . \md5($this->current_name) . '.php';
         (new ReportOfPHP)->process($this->coverage, $file);
     }
+    ////////////////////////////////////////////////////////////////////////////
     /**
      * 生成报告：新建 coverage 收录源码 -> 按组合并 dump -> 补全部分覆盖文件 -> 渲染 HTML 并统计。
      * $groups 为空时回落到 options['group']。
