@@ -18,7 +18,7 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
  * 按组(group)驱动覆盖率工作流:begin() 采集 -> end() 停止并 dump 到组目录 -> createReport()/showAllReport() 按组合并出报告。
  * 对外只暴露合并后的方法,避免调用方零散接触底层 API。
  */
-class GroupCoverageRunner
+class GroupCoverage
 {
     public $options = [
     ];
