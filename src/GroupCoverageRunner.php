@@ -29,6 +29,8 @@ class GroupCoverageRunner
     protected $current_name = '';
     protected $current_group = '';
 
+    protected $is_end = false;
+
     protected static $_instances = [];
 
     //embed
@@ -76,6 +78,7 @@ class GroupCoverageRunner
      */
     public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
     {
+        $this->is_end = false;
         $this->pre_begin($name, $group,$path_src, $path_dump);    // @codeCoverageIgnore
         LibCoverage::_()->doPause();
         $this->coverage->start($name);      // @codeCoverageIgnore
@@ -97,6 +100,9 @@ class GroupCoverageRunner
      */
     public function doEnd(): void
     {
+        if($this->is_end){
+            return;
+        }
         $this->coverage->stop();        // @codeCoverageIgnore
         LibCoverage::_()->doResume();   // @codeCoverageIgnore
         $this->post_end();
@@ -109,6 +115,7 @@ class GroupCoverageRunner
         @mkdir($path_dump);
         $file = (string)  $path_dump. DIRECTORY_SEPARATOR . \md5($this->current_name) . '.php';
         (new ReportOfPHP)->process($this->coverage, $file);
+        $this->is_end = true;
     }
     ////////////////////////////////////////////////////////////////////////////
     /**

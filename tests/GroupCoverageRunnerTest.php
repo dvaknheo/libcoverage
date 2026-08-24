@@ -34,6 +34,7 @@ class GroupCoverageRunnerTest extends \PHPUnit\Framework\TestCase
             echo $ex->getTraceAsString();
         }
         GroupCoverageRunner::_()->doEnd();
+        GroupCoverageRunner::_()->doEnd();
 
         //createReport(array $groups, string $path_src, string $path_dump, string $path_report);
         GroupCoverageRunnerEx::_()->testCreateReport();
