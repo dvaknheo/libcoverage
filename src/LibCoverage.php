@@ -264,7 +264,7 @@ class LibCoverage
         if ($this->extFile) {
             $this->addPathToFilter($this->filter, $this->extFile);
         }
-
+        echo "\n\033[42;30m".$class."\033[0m Test Start\n";
     }
     public function doEnd()
     {
