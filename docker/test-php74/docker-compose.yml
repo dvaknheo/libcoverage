@@ -9,7 +9,6 @@ services:
     working_dir: /DATA
     volumes:
       - ../../:/DATA
-      - ./composer-test-php74.lock:/DATA/composer.lock
       - libcoverage-data-for-tests74:/DATA/tests/data_for_tests
       - libcoverage-vendor74:/DATA/vendor
       - libcoverage-composer-cache74:/tmp/composer
@@ -23,12 +22,9 @@ services:
       - -c
       - |
         cd /DATA &&
-        [ -f /DATA/composer.lock ] || (echo composer.lock_missing; exit 1)
-        if [ ! -d /DATA/vendor ] || [ ! -f /DATA/vendor/autoload.php ]; then
-          composer install --no-interaction --prefer-dist --no-scripts
-        fi
+        rm -f /DATA/composer.lock &&
+        composer update
         composer exec phpunit
-        tail -f /dev/null
 
 volumes:
   libcoverage-vendor74:
