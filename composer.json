@@ -12,13 +12,13 @@
     "authors": [
         {
             "name": "dvaknheo",
-            "email": "davknheo@qq.com"
+            "email": "dvaknheo@qq.com"
         }
     ],
     "version": "1.0.8",
     "autoload": {
         "psr-4": {
-            "LibCoverage\\": "src"
+            "LibCoverage\\": "src/"
         }
     },
     "bin": [
