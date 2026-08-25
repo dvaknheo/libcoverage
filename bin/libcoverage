@@ -1,60 +1,125 @@
 #!/usr/bin/env php
 <?php
-use DuckPhp\Component\Console;
-
+use LibCoverage\LibCoverage;
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
         require $file;
         break;
     }
 }
-if(!class_exists(Console::class)){
-    //current md5 = 2cf2ac609f516ca99e779bd039abfec2
-    require __DIR__.'/Console.php';
-}
+//require __DIR__.'/Console.php';
 class Command 
 {
+    protected static $_instances = [];
+    public static function _($object = null)
+    {
+        if (defined('__SINGLETONEX_REPALACER')) {
+            $callback = __SINGLETONEX_REPALACER;
+            return ($callback)(static::class, $object);
+        }
+        if ($object) {
+            self::$_instances[static::class] = $object;
+            return $object;
+        }
+        $me = self::$_instances[static::class] ?? null;
+        if (null === $me) {
+            $me = new static();
+            self::$_instances[static::class] = $me;
+        }
+        
+        return $me;
+    }
     /**
      *  this help 
      */
     public function command_help()
     {
-        echo "LibCoverage v" .LibCoverage\LibCoverage::VERSION;
-        echo "\nUsage: \n";
-        echo Console::G()->getCommandListInfo();
+        echo "LibCoverage v" . LibCoverage::VERSION . "\n";
+        echo "useage help/report/cloze/setup  --options1=bb\n";
     }
     /**
      * fetch report
      */
     public function command_report()
     {
-        if (!class_exists(\SebastianBergmann\CodeCoverage\CodeCoverage::class)) {
-            echo 'Need import CodeCoverage package';
-            echo "\n";
-            return;
-        }
-        $options = Console::G()->getCliParameters();        
-        LibCoverage\LibCoverage::G()->init($options)->showAllReport();
+        LibCoverage::Report();
     }
     /**
      * cloze the test files
      */
     public function command_cloze()
     {
-        $options = Console::G()->getCliParameters();
-        LibCoverage\LibCoverage::G()->init($options)->createTestFiles();
+        LibCoverage::Cloze();
     }
     /**
      * setup.
      */
     public function command_setup()
     {
-        $options = Console::G()->getCliParameters();
-        LibCoverage\LibCoverage::G()->init($options)->createProject();
+        LibCoverage::NewProject();
+    }
+    public function getCliParameters()
+    {
+        return $this->parseCliArgs($_SERVER['argv']);
+    }
+    protected function parseCliArgs($argv)
+    {
+        $cli = array_shift($argv);
+        $ret = [];
+        $lastkey = '--';
+        foreach ($argv as $v) {
+            if (substr($v, 0, 2) === '--') {
+                if (!isset($ret[$lastkey])) {
+                    $ret[$lastkey] = true;
+                }
+                $lastkey = substr($v, 2);
+                $pos = strpos($lastkey, '=');
+                if ($pos !== false) {
+                    $a = substr($lastkey, 0, $pos);
+                    $b = substr($lastkey, $pos + 1);
+                    $lastkey = $a;
+                    $ret[$lastkey] = $b;
+                }
+            } elseif (!isset($ret[$lastkey])) {
+                $ret[$lastkey] = $v;
+            } elseif (is_array($ret[$lastkey])) {
+                $ret[$lastkey][] = $v;
+            } else {
+                $t = $ret[$lastkey];
+                $t = is_array($ret[$lastkey]) ? $t: [$t];
+                $t[] = $v;
+                $ret[$lastkey] = $t;
+            }
+        }
+        if (!isset($ret[$lastkey])) {
+            $ret[$lastkey] = true;
+        }
+        
+        $args = $ret['--'];
+        if (!is_array($args)) {
+            $args = ($args === true)?'':$args;
+            $ret['--'] = [$args?$args:'help'];
+        }
+        return $ret;
+    }
+    public function doRun()
+    {
+        $options = $this->getCliParameters();
+        $cmd = $options['--'][0]??'';
+        unset($options['--']);
+        LibCoverage::_()->init($options);
+        if (method_exists($this,'command_'.$cmd)) {
+            call_user_func([$this,'command_'.$cmd]);
+        }else{
+            $this->command_help();
+        }
+    }
+    public static function Run()
+    {
+        return static::_()->doRun();
     }
 }
 //////////////
-$options = [
-    'cli_default_command_class'=>Command::class,
-];
-Console::G()->init($options)->run();
+$t =Command::Run();
+//$this->init($options)->run();
+//var_dump($_SERVER);

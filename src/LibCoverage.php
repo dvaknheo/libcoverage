@@ -75,6 +75,20 @@ class LibCoverage
     {
         return static::G()->doEnd();
     }
+    public static function Report()
+    {
+        return static::_()->showAllReport();
+    }
+    public static function Cloze()
+    {
+        return static::_()->createTestFiles();
+    }
+
+    public static function NewProject()
+    {
+        return static::_()->createProject();
+    }
+
     ////////
     public function init(array $options, ?object $context = null)
     {
