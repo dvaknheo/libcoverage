@@ -55,7 +55,7 @@ class AppTest extends \PHPUnit\Framework\TestCase
         LibCoverage::Begin(App::class);
         
         /* //
-        App::G()->foo();
+        App::_()->foo();
         //*/
         
         LibCoverage::End();
@@ -75,7 +75,7 @@ class AppTest extends \PHPUnit\Framework\TestCase
 
 
 ### LibCoverage 类选项
-```
+```php
     public $options = [
         'namespace' => null,
         'path' => null,
@@ -85,7 +85,6 @@ class AppTest extends \PHPUnit\Framework\TestCase
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
         'auto_detect_namespace' => true, 
-        'override_class' => null,
     ];
 ```
 
@@ -96,46 +95,28 @@ class AppTest extends \PHPUnit\Framework\TestCase
 ## LibCoverage 类公开方法参考
 
 静态方法，常用需求都是调用静态方法.
-```
-    LibCoverage::G($object=null); // 可变单例函数
+```php
+    LibCoverage::_($object=null); // 可变单例函数,用 $object 可替换单例
     LibCoverage::Begin($class);    // 开始一个类的全覆盖跟踪
     LibCoverage::End();  // 结束一个类的跟踪
 ```
 
 额外的方法
-```
-    LibCoverage::G()->init(array $options, ?object $context = null); // boostrap.php 用来初始化的.
-    LibCoverage::G()->showAllReport();  // support.php 用来显示所有报告的
-    LibCoverage::G()->createProject();  // 创建工程文件, setup
-    LibCoverage::G()->createTests();  // 创建测试文件, cloze
+```php
+    LibCoverage::_()->init(array $options, ?object $context = null); // boostrap.php 用来初始化的.
+    LibCoverage::Report();  // support.php 用来显示所有报告的
+    LibCoverage::NewProject();  // 创建工程文件, setup
+    LibCoverage::Cloze();  // 创建测试文件, cloze
 ```
 其他不常用公开方法
-```
-    LibCoverage::G()->isInited();  // 扩展
-    LibCoverage::G()->addExtFile($extFile); // 添加额外测试文件，如全局函数文件等
-    LibCoverage::G()->getClassTestPath($class); // 获得测试类专用目录， 默认是 tests/data_for_test/【类名】
-    LibCoverage::G()->cleanDirectory($dir);  // 辅助方法，用于情况测试目录等。
-
-## 自定义和 选项 'override_class'
-
 ```php
-<?php
-namespace MyProject;
- 
-class MyLibCoverage extends \LibCoverage\LibCoverage
-{
-    public function showAllReport()
-    {
-        parent::showAllReport();
-        echo "\n-------- customer overrrided -------\n";
-    }
-}
-```
-`vendor/bin/libcoverage --override_class='MyProject\MyLibCoverage'`
-
-于是你就能看到 `-------- customer overrrided -------` after run.
+    LibCoverage::_()->isInited();  // 扩展
+    LibCoverage::_()->addExtFile($extFile); // 添加额外测试文件，如全局函数文件等
+    LibCoverage::_()->getClassTestPath($class); // 获得测试类专用目录， 默认是 tests/data_for_test/【类名】
+    LibCoverage::_()->cleanDirectory($dir);  // 辅助方法，用于情况测试目录等。
 
 ```
+
 ## 全覆盖测试通过不等于所有功能测试通过
 
 代码中可能用 @codeCoverageIgnore ,@codecoverageIgnoreStart , @codecoverageIgnoreEnd 这三个指令跳过。

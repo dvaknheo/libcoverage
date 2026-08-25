@@ -55,7 +55,7 @@ class AppTest extends \PHPUnit\Framework\TestCase
         LibCoverage::Begin(App::class);
         
         /* //
-        App::G()->foo();
+        App::_()->foo();
         //*/
         
         LibCoverage::End();
@@ -81,7 +81,6 @@ next image is LibCoverage self unit test report
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
         'auto_detect_namespace' => true,
-        'override_class' => null,
     ];
 ```
 
@@ -93,24 +92,24 @@ e.g. `vendor/bin/libcoverage --path='abc'  --path_test=test`
 
 static methods
 ```
-    LibCoverage::G($object=null); // changable singleton.
+    LibCoverage::_($object=null); // changable singleton.
     LibCoverage::Begin($class);    // begin a class trace.
     LibCoverage::End();  // end a class trace.
 ```
 
 ext methods
 ```
-    LibCoverage::G()->init(array $options, ?object $context = null); // boostrap.php use to init
-    LibCoverage::G()->showAllReport();  // support.php use to report
-    LibCoverage::G()->createProject();  //  use by command setup
-    LibCoverage::G()->createTests();  // use by command cloze
+    LibCoverage::_()->init(array $options, ?object $context = null); // boostrap.php use to init
+    LibCoverage::Report();  // support.php use to report
+    LibCoverage::NewProject();  //  use by command setup
+    LibCoverage::Cloze();  // use by command cloze
 ```
 other methods
 ```
-    LibCoverage::G()->isInited();
-    LibCoverage::G()->addExtFile($extFile); // use to global function and more.
-    LibCoverage::G()->getClassTestPath($class); // directory for class . e.g. tests/data_for_test/<$class>
-    LibCoverage::G()->cleanDirectory($dir);  // for clean support dir.
+    LibCoverage::_()->isInited();
+    LibCoverage::_()->addExtFile($extFile); // use to global function and more.
+    LibCoverage::_()->getClassTestPath($class); // directory for class . e.g. tests/data_for_test/<$class>
+    LibCoverage::_()->cleanDirectory($dir);  // for clean support dir.
 ```
 ## customer and option 'override_class'
 
