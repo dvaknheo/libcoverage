@@ -23,7 +23,7 @@ services:
       - |
         cd /DATA &&
         rm -f /DATA/composer.lock &&
-        composer update
+        composer update --no-interaction --prefer-dist --no-scripts &&
         composer exec phpunit
 
 volumes:
