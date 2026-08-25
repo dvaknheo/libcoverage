@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  libcoverage:
+    image: libcoverage/test-php85:latest
+    build:
+      context: ../..
+      dockerfile: docker/test-php85/Dockerfile
+    working_dir: /DATA
+    volumes:
+      - ../../:/DATA
+      - libcoverage-data-for-tests85:/DATA/tests/data_for_tests
+      - libcoverage-vendor85:/DATA/vendor
+      - libcoverage-composer-cache85:/tmp/composer
+      - ./test_reports:/DATA/test_reports
+      - ./test_coveragedumps:/DATA/test_coveragedumps
+    environment:
+      - COMPOSER_HOME=/tmp/composer
+      - XDEBUG_MODE=coverage
+    command:
+      - sh
+      - -c
+      - |
+        cd /DATA &&
+        rm -f /DATA/composer.lock &&
+        composer update --no-interaction --prefer-dist --no-scripts &&
+        composer exec phpunit
+
+volumes:
+  libcoverage-vendor85:
+  libcoverage-composer-cache85:
+  libcoverage-data-for-tests85:
