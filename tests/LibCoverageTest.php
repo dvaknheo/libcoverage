@@ -17,7 +17,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         
         ////
         LibCoverageEx::_();
-        LibCoverageEx::G(LibCoverageEx::_());
+        LibCoverageEx::_(LibCoverageEx::_());
         define('__SINGLETONEX_REPALACER',SingletonExObject::class . '::CreateObject');
         LibCoverage::_($old);
 
@@ -34,21 +34,29 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
             //'namespace' => 'A',
         ])->isInited();
         
-        LibCoverageProject::_()->createProject();
-        LibCoverageProject::_()->createProject();
+        $lp =  LibCoverageProject::_();
+        $ll = LibCoverage::_();
+        
+        LibCoverage::_(LibCoverageProject::_());
+        LibCoverage::NewProject();
+        LibCoverage::NewProject();
+        LibCoverage::Cloze();
+
+        LibCoverageProject::_($lp);
+        LibCoverage::_($ll);
 
         //ob_start();
         LibCoverage::_()->doPause();
         LibCoverageProject::Begin(LibCoverageProject::class);
         LibCoverageProject::End();
         LibCoverage::_()->doResume();
-        LibCoverageProject::_()->showAllReport();
+        LibCoverageProject::Report();
         LibCoverageMore::_()->init(LibCoverageProject::_()->options);
         LibCoverageMore::_()->testProtectedMethods();
 
         $_SERVER = $__SERVER;
         LibCoverage::_()->cleanDirectory($path);
-        LibCoverage::G($old);
+        LibCoverage::_($old);
         LibCoverage::End();
         
     }

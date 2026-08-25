@@ -282,10 +282,11 @@ class LibCoverage
     }
     public function doEnd()
     {
-        if($this->isSkip()){
-            if (class_exists(Assert::class)) {
+        if (class_exists(Assert::class)) {
                 Assert::assertTrue(true);
-            }
+        }
+        if($this->isSkip()){
+
             return;
         }
         $this->coverage->stop();
