@@ -115,6 +115,8 @@ class GroupCoverage
         @mkdir($path_dump);
         $file = (string)  $path_dump. DIRECTORY_SEPARATOR . \md5($this->current_name) . '.php';
         (new ReportOfPHP)->process($this->coverage, $file);
+        $ext = "\n// ".$this->current_name ."\n";
+        file_put_contents($file, $ext, FILE_APPEND);
         $this->is_end = true;
     }
     ////////////////////////////////////////////////////////////////////////////
