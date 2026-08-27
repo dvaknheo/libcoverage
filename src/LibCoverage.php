@@ -29,6 +29,7 @@ class LibCoverage
     protected $extFile = null;
     protected $coverage;
     protected $test_class;
+    protected $test_object;
     protected $filter;
     
     protected $is_skip = false;
@@ -262,8 +263,18 @@ class LibCoverage
             $this->doBegin($this->test_class);  //@codeCoverageIgnore
         }
     }
-    public function doBegin($class)
+    protected function testCaseObjectToClass($class_or_object)
     {
+        return substr((string)get_class($class_or_object),strlen("tests\\"),0-strlen("Test"));
+    }
+    public function doBegin($class_or_object)
+    {
+        if (\is_object($class_or_object)){
+            $this->test_object = $class_or_object; //@codeCoverageIgnore
+            $class = $this->testCaseObjectToClass(class_or_object);  //@codeCoverageIgnore
+        } else {
+            $class = $class_or_object;
+        }
         $this->test_class = $class;
 
         if ($this->isSkip()) {

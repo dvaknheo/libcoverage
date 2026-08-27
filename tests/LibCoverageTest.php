@@ -1,5 +1,5 @@
 <?php
-namespace tests;
+namespace tests\LibCoverage;
 
 use LibCoverage\LibCoverage;
 
@@ -52,7 +52,7 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::_()->doResume();
         LibCoverageProject::Report();
         LibCoverageMore::_()->init(LibCoverageProject::_()->options);
-        LibCoverageMore::_()->testProtectedMethods();
+        LibCoverageMore::_()->testProtectedMethods($this);
 
         $_SERVER = $__SERVER;
         LibCoverage::_()->cleanDirectory($path);
@@ -115,39 +115,14 @@ class LibCoverageEx extends LibCoverage
     public function createReportTest()
     {
         return $this->createReport();
-    }
-    public function doTestMore()
-    {
-
-        $this->options['mypath']='/test/';
-        $this->getComponenetPathByKey('mypath');
-        $this->getOutputPath();
-        $this->showResult();
-        
-        // 这两个可以优化？
-        $this->setPath($this->options['path']);
-        $this->setPath($this->classToPath(LibCoverage::class));
-        ////////////////
-        
-        $this->makeDir('a/b/c',$this->options['path_src']);
-        rmdir($this->options['path_dump']);
-        rmdir($this->options['path_report']);
-        $this->createProject();
-        $this->createProject();
-        
-        //exit;
-        $this->cleanDirectory($this->options['path']);
-        
-    }
-    //
-}
+    }}
 class LibCoverageMore extends LibCoverage
 {
     protected function isSkip()
     {
         return true;
     }
-    public function testProtectedMethods()
+    public function testProtectedMethods($case)
     {
         //getComponenetPathByKey('');
         $this->options['path'] = LibCoverage::_()->getClassTestPath(LibCoverage::class);
@@ -158,24 +133,9 @@ class LibCoverageMore extends LibCoverage
         $this->doBegin(LibCoverageMore::class);
         $this->doEnd();
         $this->post_end();
+
+        $this->testCaseObjectToClass($case);
+
     }
 
 }
-
-/*
-
-        $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
-        LibCoverage::_()->init(['path'=>$path]);
-        
-        LibCoverage::Begin(LibCoverage::class);
-
-        $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
-
-        LibCoverage::_()->showAllReport();
-        //// 次要流程
-        //        $path = realpath($path);
-        LibCoverage::CreateTestFiles(__DIR__.'/../src',$path);
-        
-        //LibCoverage::End(); //本例特殊, End 之后就停止跟踪了
-
-*/
