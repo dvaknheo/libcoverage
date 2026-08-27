@@ -99,14 +99,15 @@ class AppTest extends \PHPUnit\Framework\TestCase
     LibCoverage::_($object=null); // 可变单例函数,用 $object 可替换单例
     LibCoverage::Begin($class);    // 开始一个类的全覆盖跟踪
     LibCoverage::End();  // 结束一个类的跟踪
+    LibCoverage::Report();  // support.php 用来显示所有报告的
+    LibCoverage::NewProject();  // 创建工程文件, setup
+    LibCoverage::Cloze();  // 创建测试文件, cloze
+
 ```
 
 额外的方法
 ```php
     LibCoverage::_()->init(array $options, ?object $context = null); // boostrap.php 用来初始化的.
-    LibCoverage::Report();  // support.php 用来显示所有报告的
-    LibCoverage::NewProject();  // 创建工程文件, setup
-    LibCoverage::Cloze();  // 创建测试文件, cloze
 ```
 其他不常用公开方法
 ```php
