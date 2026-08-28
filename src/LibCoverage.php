@@ -58,9 +58,9 @@ class LibCoverage
         
         return $me;
     }
-     /**
-     * @return static
-     */
+    /**
+    * @return static
+    */
     public static function G($object = null)
     {
         return static::_($object);
@@ -117,7 +117,7 @@ class LibCoverage
     }
     protected function isSkip()
     {
-        $c_args=[
+        $c_args = [
             '--coverage-clover',
             '--coverage-crap4j',
             '--coverage-html',
@@ -126,8 +126,8 @@ class LibCoverage
         ];
         $flag = array_reduce(
             $c_args,
-            function($flag,$v){
-                return $flag || in_array($v,$_SERVER['argv'] ?? []);
+            function ($flag, $v) {
+                return $flag || in_array($v, $_SERVER['argv'] ?? []);
             },
             false
         );
@@ -154,7 +154,7 @@ class LibCoverage
         $data = json_decode((string)$data, true);
         $map = $data['autoload']['psr-4'];
         $namespaces = array_flip($map);
-        $namespace = $namespaces[$this->options['path_src']] ?? ( $namespaces[$this->options['path_src'].'/']??'');
+        $namespace = $namespaces[$this->options['path_src']] ?? ($namespaces[$this->options['path_src'].'/'] ?? '');
         $namespace = rtrim($namespace, '\\');
         return $namespace;
     }
@@ -166,7 +166,7 @@ class LibCoverage
     {
         $path_data = $this->getComponenetPathByKey('path_data');
         $ret = rtrim($path_data, DIRECTORY_SEPARATOR) .str_replace([$this->options['namespace'].'\\','\\'], ['/','/'], $class).DIRECTORY_SEPARATOR;
-        $ret = str_replace(['\\','/'],[DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR], $ret);
+        $ret = str_replace(['\\','/'], [DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR], $ret);
         return $ret;
     }
     public function addExtFile($extFile)
@@ -179,12 +179,11 @@ class LibCoverage
     {
         if (!file_exists($path)) {
             return; //@codeCoverageIgnore
-
         }
         if (is_file($path)) {
             $target->includeFiles([$path]);
             return;
-        } 
+        }
         $dir = new \RecursiveDirectoryIterator($path, \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS);
         $it = new \RecursiveIteratorIterator($dir);
         foreach ($it as $f) {
@@ -192,7 +191,6 @@ class LibCoverage
                 $target->includeFiles([$f]);
             }
         }
-
     }
     protected function createReport()
     {
@@ -227,8 +225,8 @@ class LibCoverage
         (new ReportOfHtmlOfFacade)->process($coverage, $path_report);
         
         $report = $coverage->getReport();
-        $lines_tested =  $report->numberOfExecutedLines();
-        $lines_total =  $report->numberOfExecutableLines();
+        $lines_tested = $report->numberOfExecutedLines();
+        $lines_total = $report->numberOfExecutableLines();
         $lines_percent = sprintf('%0.2f%%', $lines_tested / $lines_total * 100);
         return [
             'lines_tested' => $lines_tested,
@@ -261,11 +259,11 @@ class LibCoverage
     }
     protected function testCaseObjectToClass($class_or_object)
     {
-        return substr((string)get_class($class_or_object),strlen("tests\\"),0-strlen("Test"));
+        return substr((string)get_class($class_or_object), strlen("tests\\"), 0 - strlen("Test"));
     }
     public function doBegin($class_or_object)
     {
-        if (\is_object($class_or_object)){
+        if (\is_object($class_or_object)) {
             $this->test_object = $class_or_object; //@codeCoverageIgnore
             $class = $this->testCaseObjectToClass(class_or_object);  //@codeCoverageIgnore
         } else {
@@ -290,10 +288,9 @@ class LibCoverage
     public function doEnd()
     {
         if (class_exists(Assert::class)) {
-                Assert::assertTrue(true);
+            Assert::assertTrue(true);
         }
-        if($this->isSkip()){
-
+        if ($this->isSkip()) {
             return;
         }
         $this->coverage->stop();

@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 /**
- * DuckPhp
- * From this time, you never be alone~
+ * LibCoverage
+ * From this time on, you never be alone~
  */
-
 namespace LibCoverage;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage;
@@ -76,21 +75,21 @@ class GroupCoverage
      * 开始采集：懒创建 coverage + 收录源码目录(options['path_src']) + start（内部防重入）。
      * 测试名与组名由参数传入（组名为空时回落到 options['group']），供 doEnd() 无参 dump 使用。
      */
-    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
+    public function doBegin(string $name, string $group, string $path_src, string $path_dump): void
     {
         $this->is_end = false;
-        $this->pre_begin($name, $group,$path_src, $path_dump);    // @codeCoverageIgnore
+        $this->pre_begin($name, $group, $path_src, $path_dump);    // @codeCoverageIgnore
         LibCoverage::_()->doPause();
         $this->coverage->start($name);      // @codeCoverageIgnore
     }
-    protected function pre_begin(string $name, string $group, string $path_src,string $path_dump): void
+    protected function pre_begin(string $name, string $group, string $path_src, string $path_dump): void
     {
         if (!$this->coverage) {
             $this->coverage = $this->createCoverage(); // @codeCoverageIgnore
         }
         $this->current_path_dump = $path_dump;
         $this->current_name = $name;
-        $this->current_group =  $group;
+        $this->current_group = $group;
 
         $this->includePath($this->coverage, $path_src);
     }
@@ -100,7 +99,7 @@ class GroupCoverage
      */
     public function doEnd(): void
     {
-        if($this->is_end){
+        if ($this->is_end) {
             return;
         }
         $this->coverage->stop();        // @codeCoverageIgnore
