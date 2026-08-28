@@ -91,9 +91,15 @@ class LibCoverage
     }
 
     ////////
+    /**
+     * Summary of init
+     * @param array<string,mixed> $options
+     * @param ?object $context
+     * @return static
+     */
     public function init(array $options, ?object $context = null)
     {
-        $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
+        $this->options = array_intersect_key(array_replace_recursive($this->options, $options), $this->options);
         $this->options['path'] = $this->options['path'] ?? getcwd().'/';
         if (empty($this->options['namespace']) && $this->options['auto_detect_namespace']) {
             $this->options['namespace'] = $this->getDefaultNamespaceByComposer();
@@ -265,7 +271,7 @@ class LibCoverage
     {
         if (\is_object($class_or_object)) {
             $this->test_object = $class_or_object; //@codeCoverageIgnore
-            $class = $this->testCaseObjectToClass(class_or_object);  //@codeCoverageIgnore
+            $class = $this->testCaseObjectToClass($class_or_object);  //@codeCoverageIgnore
         } else {
             $class = $class_or_object;
         }

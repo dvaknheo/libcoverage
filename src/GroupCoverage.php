@@ -58,6 +58,9 @@ class GroupCoverage
     }
 
     /**
+     * 
+     * @param array<string,mixed> $options
+     * @param ?object $context
      * @return static
      */
     public function init(array $options, ?object $context = null)
@@ -122,7 +125,7 @@ class GroupCoverage
     /**
      * 生成报告：新建 coverage 收录源码 -> 按组合并 dump -> 补全部分覆盖文件 -> 渲染 HTML 并统计。
      * $groups 为空时回落到 options['group']。
-     *
+     * @param array<string>  $groups
      * @return array{lines_tested:int, lines_total:int, lines_percent:string}
      */
     public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
