@@ -1,31 +1,35 @@
 # LibCoverage
 
-[English](README.md) | [中文](README-zh-CN.md)
+[English](README.md) | [中文](README.zh_CN.md)
 
 *** v1.0.8 ***
-LibCoverage for full code coverage for php library creater.
 
+Author QQ: 85811616
 
-## usage
+Official QQ Group: 714610448
+
+LibCoverage helps PHP library developers achieve full code-coverage testing, making your PHP code more robust.
+
+## Usage
 
 ```
-composer require --dev dvaknheo/libcoverage
+composer require --dev dvaknheo/libcoverage ## install
 composer exec libcoverage          # show help
-composer exec libcoverage setup
-phpunit
-cat test_reports/index.html        #  you can use browser open it
-# composer exec libcoverage cloze  # write a new class , cloze it.
-# phpunit tests/AppTest.php && phpunit tests/support.php # report for a class change
-# composer exec libcoverage report  # 
+composer exec libcoverage setup    # set up the project
+phpunit                            # run PHPUnit unit tests
+cat test_reports/index.html        # view the report; you can also open it in a browser
+# composer exec libcoverage cloze  # new classes added; fill in test templates
+# phpunit tests/AppTest.php && phpunit tests/support.php # regenerate when only a single class has changed
+# composer exec libcoverage report  # alternative report generation; already generated during phpunit
 ```
 
-`composer exec libcoverage setup ` create  `phpunit.xml` and `tests/boostrap.php` and `tests/support.php` on not exists
+`composer exec libcoverage setup` creates `phpunit.xml` (if it does not exist) and the supporting files `tests/boostrap.php` and `tests/support.php`.
 
-run `phpunit` , browse `test_reports/index.html`
+Run `phpunit`, then open `index.html` in the `test_reports` directory.
 
-`setup` command folow `src` create `tests/*Test.php` test template.
+The `setup` command also generates corresponding `tests/*Test.php` test templates based on the class files in the `src` directory.
 
-e.g. src/App.php
+For example, for `src/App.php`:
 
 ```php
 <?php
@@ -39,7 +43,9 @@ class App
     }
 }
 ```
-be  tests/AppTest.php
+
+`tests/AppTest.php` will be generated:
+
 ```php
 <?php 
 namespace tests\MyProject;
@@ -63,15 +69,22 @@ class AppTest extends \PHPUnit\Framework\TestCase
 }
 
 ```
-finish test code, good job.
 
-next image is LibCoverage self unit test report
+The test code in the middle is up to you — write tests that achieve 100% coverage for the current class.
+
+`composer exec libcoverage cloze` is used to fill in test files that were added later. Existing test files will not be overwritten.
+
+`phpunit tests/AppTest.php && phpunit tests/support.php` is a trick for when only a single file has been modified.
+
+Below is a screenshot of LibCoverage running PHPUnit with full coverage. Example of `test_reports/index.html`:
 
 ![capture](docs/capture.png)
 
+## LibCoverage Class Options
 
-## LibCoverage options
-```
+Default options:
+
+```php
     public $options = [
         'namespace' => null,
         'path' => null,
@@ -80,49 +93,72 @@ next image is LibCoverage self unit test report
         'path_report' => 'test_reports',
         'path_test' => 'tests',
         'path_data' => 'tests/data_for_tests',
-        'auto_detect_namespace' => true,
+        'auto_detect_namespace' => true, 
     ];
 ```
 
-`composer exec libcoverage` can take these options on.
+When running `composer exec libcoverage`, these options can be passed in, for example:
 
-e.g. `vendor/bin/libcoverage --path='abc'  --path_test=test`
+`vendor/bin/libcoverage --path='abc' --path-test=test`
 
-## LibCoverage class public methods
+You can also adjust these options in `tests/boostrap.php`.
 
-static methods
-```
-    LibCoverage::_($object=null); // changable singleton.
-    LibCoverage::Begin($class);    // begin a class trace.
-    LibCoverage::End();  // end a class trace.
-```
+`namespace` is the base namespace of the classes to be tested. If left empty, `auto_detect_namespace` will detect and fill it.
 
-ext methods
-```
-    LibCoverage::_()->init(array $options, ?object $context = null); // boostrap.php use to init
-    LibCoverage::Report();  // support.php use to report
-    LibCoverage::NewProject();  //  use by command setup
-    LibCoverage::Cloze();  // use by command cloze
-```
-other methods
-```
-    LibCoverage::_()->isInited();
-    LibCoverage::_()->addExtFile($extFile); // use to global function and more.
-    LibCoverage::_()->getClassTestPath($class); // directory for class . e.g. tests/data_for_test/<$class>
-    LibCoverage::_()->cleanDirectory($dir);  // for clean support dir.
-```
-## customer and option 'override_class'
+`path` is the base path.
+
+`path_data` is used to store test data.
+
+## LibCoverage Class Public Method Reference
+
+Static methods — common needs are met by calling static methods:
 
 ```php
-<?php
-namespace MyProject;
- 
-class MyLibCoverage extends \LibCoverage\LibCoverage
-{
-    public function showAllReport()
-    {
-        parent::showAllReport();
-        echo "\n-------- customer overrrided -------\n";
-    }
-}
+    LibCoverage::_($object=null); // mutable singleton; pass $object to replace the singleton
+    LibCoverage::Begin($class);    // start full-coverage tracing for a class
+    LibCoverage::End();  // end tracing for a class
+    LibCoverage::Report();  // used by support.php to display all reports
+    LibCoverage::NewProject();  // create project files; used by the setup command
+    LibCoverage::Cloze();  // create test files; used by the cloze command
+
+```
+
+Additional methods:
+
+```php
+    LibCoverage::_()->init(array $options, ?object $context = null); // used by boostrap.php for initialization
+```
+
+Other less commonly used public methods:
+
+```php
+    LibCoverage::_()->doPause() // pause
+    LibCoverage::_()->doResume() // resume
+    LibCoverage::_()->addExtFile($extFile); // add extra test files, such as global function files
+    LibCoverage::_()->getClassTestPath($class); // get the dedicated directory for the test class; default is tests/data_for_test/[ClassName]
+    LibCoverage::_()->cleanDirectory($dir);  // helper method for deleting test directories, etc.
+
+```
+
+## Full Coverage Passing Does Not Equal All Functional Tests Passing
+
+The code may use `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, and `@codeCoverageIgnoreEnd` to skip sections.
+
+Also, conditional short-circuiting may skip subsequent branches.
+
+Also, someone forced to achieve full coverage may not necessarily exercise all logic paths.
+
+## GroupCoverage
+
+`GroupCoverage` is an auxiliary class of LibCoverage, used by the `DuckCoverage` class in the `dvaknheo/duckcoverage` package to dump and report by group.
+
+The following public methods are available:
+
+```php
+    public static function _($object = null)
+    public function init(array $options, ?object $context = null)
+    public function getCoverage()
+    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
+    public function doEnd(): void
+    public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
 ```
