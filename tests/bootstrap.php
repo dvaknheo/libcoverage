@@ -1,10 +1,5 @@
 <?php
-foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../src/LibCoverage.php'] as $file) {
-    if (file_exists($file)) {
-        require $file;
-        break;
-    }
-}
+require_once __DIR__ . '/../vendor/autoload.php';
 
 ////////
 $options=[
@@ -18,4 +13,4 @@ $options=[
     'path_data' => 'tests/data_for_tests',
 ];
 
-LibCoverage\LibCoverage::G()->init($options);
+LibCoverage\LibCoverage::_()->init($options);

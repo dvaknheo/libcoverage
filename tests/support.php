@@ -5,6 +5,6 @@ class support extends \PHPUnit\Framework\TestCase
 {
     public function testMain()
     {
-        LibCoverage\LibCoverage::G()->showAllReport();
+        LibCoverage\LibCoverage::Report();
     }
 }

@@ -63,7 +63,7 @@ class GroupCoverage
      */
     public function init(array $options, ?object $context = null)
     {
-        $this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
+        //$this->options = array_intersect_key(array_replace_recursive($this->options, $options) ?? [], $this->options);
         $this->coverage = $this->createCoverage();
         $this->is_inited = true;
         return $this;

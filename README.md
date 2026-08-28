@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README-zh-CN.md)
 
-*** v1.0.7 ***
+*** v1.0.8 ***
 LibCoverage for full code coverage for php library creater.
 
 
@@ -126,6 +126,3 @@ class MyLibCoverage extends \LibCoverage\LibCoverage
     }
 }
 ```
-`vendor/bin/libcoverage --override_class='MyProject\MyLibCoverage'`
-
-So, you can see the string `-------- customer overrrided -------` after run.

@@ -12,7 +12,7 @@ use SebastianBergmann\CodeCoverage\Report\PHP as ReportOfPHP;
 
 class LibCoverage
 {
-    const VERSION = '1.0.7';
+    const VERSION = '1.0.8';
     
     public $options = [
         'namespace' => null,
@@ -400,7 +400,7 @@ class LibCoverage
     protected function makeTest($file, $short_file)
     {
         $data = file_get_contents($file);
-        preg_match_all('/ function (([^\(]+)\([^\)]*\))/', (string)$data, $m); //TODO 我们考虑改用反射
+        preg_match_all('/ function (([^\(]+)\([^\)]*\))/', (string)$data, $m); //TODO use reflection
         $funcs = $m[1];
         
         $ns = $this->options['namespace'].'\\'.str_replace('/', '\\', dirname($short_file));

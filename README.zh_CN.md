@@ -1,5 +1,5 @@
 # LibCoverage
-*** v1.0.7 版 ***
+*** v1.0.8 版 ***
 作者QQ: 85811616
 
 官方QQ群: 714610448
@@ -75,6 +75,8 @@ class AppTest extends \PHPUnit\Framework\TestCase
 
 
 ### LibCoverage 类选项
+
+默认选项。
 ```php
     public $options = [
         'namespace' => null,
@@ -87,10 +89,16 @@ class AppTest extends \PHPUnit\Framework\TestCase
         'auto_detect_namespace' => true, 
     ];
 ```
+`composer exec libcoverage` 的时候可以把这些选项带进来。比如
+`vendor/bin/libcoverage --path='abc'  --path-test=test` 等
 
-`composer exec libcoverage` 的时候可以把这些选项带进来。但由于 composer 的限制，你要改执行文件
+你也可以在 `tests/boostrap.php`  调整这些选项。
 
-`vendor/bin/libcoverage --path='abc'  --path_test=test` 等
+其中  `namespace` 是要测试的类的基准命名空间， 如果为 空，则由 `auto_detect_namespace` 查找并填充。
+
+`path` 是基准路径 
+
+`path_data` 是用于保存测试数据
 
 ## LibCoverage 类公开方法参考
 
@@ -111,10 +119,11 @@ class AppTest extends \PHPUnit\Framework\TestCase
 ```
 其他不常用公开方法
 ```php
-    LibCoverage::_()->isInited();  // 扩展
+    LibCoverage::_()->doPause() //暂停
+    LibCoverage::_()->doResume() //继续
     LibCoverage::_()->addExtFile($extFile); // 添加额外测试文件，如全局函数文件等
     LibCoverage::_()->getClassTestPath($class); // 获得测试类专用目录， 默认是 tests/data_for_test/【类名】
-    LibCoverage::_()->cleanDirectory($dir);  // 辅助方法，用于情况测试目录等。
+    LibCoverage::_()->cleanDirectory($dir);  // 辅助方法，用于删除测试目录等。
 
 ```
 
@@ -126,5 +135,16 @@ class AppTest extends \PHPUnit\Framework\TestCase
 
 还有，被迫全覆盖测试的人为了全覆盖测试，不一定能跑完所有逻辑。
 
-## 其他
+## GroupCoverage
 
+`GroupCoverage` 是 LibCoverage 的附属类， 用于 `dvaknheo/duckcoverage` 包的 `DuckCoverage` 类以组为单位 dump 和报告
+
+有以下公开方法
+```php
+    public static function _($object = null)
+    public function init(array $options, ?object $context = null)
+    public function getCoverage()
+    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
+    public function doEnd(): void
+    public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
+```
