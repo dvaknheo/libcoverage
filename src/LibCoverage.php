@@ -135,12 +135,8 @@ class LibCoverage
     }
     protected static function IsAbsPath($path)
     {
-        if (DIRECTORY_SEPARATOR === '/') {
-            // Linux
-            return substr($path, 0, 1) === '/'; // @codeCoverageIgnore
-        }
-        // Windows
-        return (bool) preg_match('/^([a-zA-Z]:[\\\\\/]?|\\\\\\\\)/', $path); // @codeCoverageIgnore
+        $is_abs = preg_match('#^(?:/|[a-zA-Z]:[\\\\/]|\\\\{2})#', $path ?? '') > 0;
+        return $is_abs;
     }
     protected function getComponenetPathByKey($path_key)
     {
