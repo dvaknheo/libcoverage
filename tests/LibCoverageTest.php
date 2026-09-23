@@ -53,14 +53,23 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::NewProject();
         LibCoverage::Cloze();
 
-        // 模板里的方法名来自反射: 只列本类声明的 public 方法, 继承来的不列
+        // 模板里的方法名来自反射: 本类声明的 public/protected/private 方法分组写,
+        // 继承来的不写; 非 public 的调用在模板里是注释掉的
         $this->assertTemplate(
             $path.'tests/AppTest.php',
-            ['App::_()->foo();', 'App::_()->bar($a, $b, ...$rest);'],
+            [
+                '// public methods',
+                'App::_()->foo();',
+                'App::_()->bar($a, $b, ...$rest);',
+                '// protected methods',
+                '// App::_()->hidden();',
+                '// private methods',
+                '// App::_()->secret();',
+            ],
             ['inherited']
         );
-        $this->assertTemplate($path.'tests/AppInterfaceTest.php', ['AppInterface::_()->run();'], []);
-        $this->assertTemplate($path.'tests/AppTraitTest.php', ['AppTrait::_()->traitFoo();'], []);
+        $this->assertTemplate($path.'tests/AppInterfaceTest.php', ['// public methods', 'AppInterface::_()->run();'], []);
+        $this->assertTemplate($path.'tests/AppTraitTest.php', ['// public methods', 'AppTrait::_()->traitFoo();'], []);
         // 源文件载入失败(缺依赖), 不算致命: 模板里不写调用
         $this->assertTemplate($path.'tests/AppMissingDependencyTest.php', [], ['::_()->']);
 
@@ -144,6 +153,14 @@ class App extends AppBase
         var_dump(DATE(DATE_ATOM));
     }
     public function bar(\$a, \$b = 1, ...\$rest)
+    {
+        var_dump(DATE(DATE_ATOM));
+    }
+    protected function hidden()
+    {
+        var_dump(DATE(DATE_ATOM));
+    }
+    private function secret()
     {
         var_dump(DATE(DATE_ATOM));
     }

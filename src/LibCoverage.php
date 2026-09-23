@@ -459,7 +459,7 @@ class LibCoverage
         $ns = str_replace('\.', '', $ns);
         $TestClass = basename($short_file, '.php').'Test';
         $InitClass = basename($short_file, '.php');
-        $funcs = $this->getMethodCallsByReflection($file, $ns.'\\'.$InitClass);
+        $groups = $this->getMethodGroupsByReflection($file, $ns.'\\'.$InitClass);
         
         $ret = "<"."?php \n";
         $ret .= <<<EOT
@@ -478,12 +478,7 @@ class $TestClass extends \PHPUnit\Framework\TestCase
         /* //
 
 EOT;
-        foreach ($funcs as $v) {
-            $ret .= <<<EOT
-        {$InitClass}::_()->$v;
-
-EOT;
-        }
+        $ret .= $this->makeTestBody($InitClass, $groups);
         $ret .= <<<EOT
         //*/
         
@@ -495,21 +490,51 @@ EOT;
         return $ret;
     }
     /**
-     * 用反射取出模板里要写的方法调用: 只取本类声明的 public 方法, 继承来的不算。
-     * @return array<string>
+     * 生成模板中间那段: 一组一组写方法调用, 组名用英文注释标出来,
+     * 非 public 的方法从外面调不到, 每行前面加单行注释, 免得一放开就报错。
+     * @param string $class
+     * @param array<string, array<string>> $groups 可见性 => 调用语句
      */
-    protected function getMethodCallsByReflection($file, $class)
+    protected function makeTestBody($class, array $groups)
     {
+        $ret = '';
+        foreach ($groups as $visibility => $calls) {
+            $ret .= "\n        // {$visibility} methods\n";
+            $mark = $visibility === 'public' ? '' : '// ';
+            foreach ($calls as $call) {
+                $ret .= "        {$mark}{$class}::_()->{$call};\n";
+            }
+        }
+        return $ret."\n";
+    }
+    /**
+     * 用反射取出模板里要写的方法调用, 按 public/protected/private 分组。
+     * 只取本类声明的方法, 继承来的不算(那是父类的测试模板该写的东西)。
+     * @return array<string, array<string>> 可见性 => 调用语句
+     */
+    protected function getMethodGroupsByReflection($file, $class)
+    {
+        $ret = [];
         $ref = $this->reflectClassOfFile($file, $class);
         if (null === $ref) {
-            return [];
+            return $ret;
         }
-        $ret = [];
-        foreach ($ref->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->getDeclaringClass()->getName() !== $ref->getName()) {
-                continue;   // 父类带来的方法, 归父类的测试模板
+        $visibilities = [
+            'public' => \ReflectionMethod::IS_PUBLIC,
+            'protected' => \ReflectionMethod::IS_PROTECTED,
+            'private' => \ReflectionMethod::IS_PRIVATE,
+        ];
+        foreach ($visibilities as $visibility => $filter) {
+            $calls = [];
+            foreach ($ref->getMethods($filter) as $method) {
+                if ($method->getDeclaringClass()->getName() !== $ref->getName()) {
+                    continue;   // 父类带来的方法, 归父类的测试模板
+                }
+                $calls[] = $this->makeMethodCall($method);
             }
-            $ret[] = $this->makeMethodCall($method);
+            if ($calls) {
+                $ret[$visibility] = $calls;
+            }
         }
         return $ret;
     }

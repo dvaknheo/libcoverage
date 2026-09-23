@@ -55,7 +55,10 @@ class AppTest extends \PHPUnit\Framework\TestCase
         LibCoverage::Begin(App::class);
         
         /* //
+
+        // public methods
         App::_()->foo();
+
         //*/
         
         LibCoverage::End();
@@ -64,6 +67,8 @@ class AppTest extends \PHPUnit\Framework\TestCase
 
 ```
 中间测试代码由你来完成哦，绞尽脑汁为当前类写 100% 覆盖的测试代码吧。
+
+模板里的方法是用反射取的，并按 public / protected / private 分组：public 的写成可直接用的调用，protected / private 的每行前面加了 `//` 注释掉，因为测试里从外面调不到它们。父类继承来的方法不列出来，那是父类自己的测试模板该写的事。
 
 `composer exec libcoverage cloze` 用来填补你后来添加的测试文件。 测试文件不会被覆盖。
 

@@ -61,7 +61,10 @@ class AppTest extends \PHPUnit\Framework\TestCase
         LibCoverage::Begin(App::class);
         
         /* //
+
+        // public methods
         App::_()->foo();
+
         //*/
         
         LibCoverage::End();
@@ -71,6 +74,8 @@ class AppTest extends \PHPUnit\Framework\TestCase
 ```
 
 The test code in the middle is up to you — write tests that achieve 100% coverage for the current class.
+
+Methods are taken from reflection and grouped by visibility: `public` methods are written as usable calls, while `protected` / `private` ones are listed as commented-out calls, because a test cannot call them from the outside. Methods inherited from a parent class are not listed — they belong to the parent's own test template.
 
 `composer exec libcoverage cloze` is used to fill in test files that were added later. Existing test files will not be overwritten.
 
