@@ -12,8 +12,19 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
 
         $path = LibCoverage::_()->getClassTestPath(LibCoverage::class);
         LibCoverage::Begin(LibCoverage::class);
-        LibCoverage::_()->getClassTestPath(LibCoverage::class);
-        LibCoverage::_()->cleanDirectory($path);
+        // CreateTestDir()/CleanTestDir(): 在 path_data 下按类名建目录/清目录
+        $this->assertSame('', LibCoverage::CreateTestDir(''));  // 没有类名就没有目录
+        $dir = LibCoverage::CreateTestDir('LibCoverage\\TempTestDir');
+        $this->assertStringEndsWith('TempTestDir'.DIRECTORY_SEPARATOR, (string)$dir);
+        $this->assertTrue(is_dir($dir));
+        $this->assertSame($dir, LibCoverage::CreateTestDir('LibCoverage\\TempTestDir'));    // 已存在也不出错
+        $this->assertSame($dir, LibCoverage::CleanTestDir('LibCoverage\\TempTestDir'));
+        $this->assertFalse(is_dir($dir));           // 没有 .gitignore, 目录本身也删掉
+        @mkdir($path.'tests');
+        file_put_contents($path.'tests/leftover.php', DATE(DATE_ATOM));
+        $this->assertSame($path, LibCoverage::CleanTestDir());  // 不填类名: 用 Begin() 的类
+        $this->assertFalse(is_dir($path.'tests'));  // 子目录一起清掉
+        $this->assertTrue(is_file($path.'.gitignore'));         // .gitignore 保留
         
         ////
         LibCoverageEx::_();
@@ -66,7 +77,8 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverageMore::_()->testProtectedMethods($this);
 
         $_SERVER = $__SERVER;
-        LibCoverage::_()->cleanDirectory($path);
+        $this->assertSame($path, LibCoverage::CleanTestDir());
+        $this->assertFalse(is_dir($path.'tests'));  // 测试目录清干净了
         LibCoverage::_($old);
         LibCoverage::End();
         

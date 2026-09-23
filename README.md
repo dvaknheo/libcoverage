@@ -120,6 +120,8 @@ Static methods — common needs are met by calling static methods:
     LibCoverage::Report();  // used by support.php to display all reports
     LibCoverage::NewProject();  // create project files; used by the setup command
     LibCoverage::Cloze();  // create test files; used by the cloze command
+    LibCoverage::CreateTestDir($class=null);  // create the test data directory path_data/[ClassName]; $class defaults to the class of Begin()
+    LibCoverage::CleanTestDir($class=null);   // clean that directory
 
 ```
 
@@ -136,6 +138,8 @@ Other less commonly used public methods:
     LibCoverage::_()->doResume() // resume
     LibCoverage::_()->addExtFile($extFile); // add extra test files, such as global function files
     LibCoverage::_()->getClassTestPath($class); // get the dedicated directory for the test class; default is tests/data_for_test/[ClassName]
+    LibCoverage::_()->doCreateTestDir($class=null); // create that directory, returns its path
+    LibCoverage::_()->doCleanTestDir($class=null);  // clean that directory, returns its path
     LibCoverage::_()->cleanDirectory($dir);  // helper method for deleting test directories, etc.
 
 ```

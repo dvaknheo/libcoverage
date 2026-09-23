@@ -89,6 +89,20 @@ class LibCoverage
     {
         return static::_()->createProject();
     }
+    /**
+     * 建立测试类专用目录 path_data/类名/, 返回目录路径
+     */
+    public static function CreateTestDir($class = null)
+    {
+        return static::_()->doCreateTestDir($class);
+    }
+    /**
+     * 清理测试类专用目录 path_data/类名/, 返回目录路径
+     */
+    public static function CleanTestDir($class = null)
+    {
+        return static::_()->doCleanTestDir($class);
+    }
 
     ////////
     /**
@@ -361,6 +375,43 @@ class LibCoverage
             $result = @rmdir($dir);
         }
         return $result;
+    }
+    /**
+     * 建立测试类专用目录 path_data/类名/, 返回目录路径
+     * @param ?string $class 不填就用 Begin() 的类
+     * @return string
+     */
+    public function doCreateTestDir($class = null)
+    {
+        $path = $this->getTestDirPath($class);
+        if ($path !== '' && !is_dir($path)) {
+            mkdir($path, 0777, true);
+        }
+        return $path;
+    }
+    /**
+     * 清理测试类专用目录 path_data/类名/, 返回目录路径
+     * @param ?string $class 不填就用 Begin() 的类
+     * @return string
+     */
+    public function doCleanTestDir($class = null)
+    {
+        $path = $this->getTestDirPath($class);
+        $this->cleanDirectory($path);
+        return $path;
+    }
+    /**
+     * 测试类专用目录路径: 不填类名就用 Begin() 的类, 都没有就没有目录
+     * @param ?string $class
+     * @return string
+     */
+    protected function getTestDirPath($class = null)
+    {
+        $class = $class ?? $this->test_class;
+        if (empty($class)) {
+            return '';      // 还没 Begin() 过, 不知道是谁的目录
+        }
+        return $this->getClassTestPath($class);
     }
     ///////////////////////
 

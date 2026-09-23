@@ -110,6 +110,8 @@ class AppTest extends \PHPUnit\Framework\TestCase
     LibCoverage::Report();  // support.php 用来显示所有报告的
     LibCoverage::NewProject();  // 创建工程文件, setup
     LibCoverage::Cloze();  // 创建测试文件, cloze
+    LibCoverage::CreateTestDir($class=null);  // 建立测试数据目录 path_data/【类名】, $class 不填就用 Begin() 的类
+    LibCoverage::CleanTestDir($class=null);   // 清理这个目录
 
 ```
 
@@ -123,6 +125,8 @@ class AppTest extends \PHPUnit\Framework\TestCase
     LibCoverage::_()->doResume() //继续
     LibCoverage::_()->addExtFile($extFile); // 添加额外测试文件，如全局函数文件等
     LibCoverage::_()->getClassTestPath($class); // 获得测试类专用目录， 默认是 tests/data_for_test/【类名】
+    LibCoverage::_()->doCreateTestDir($class=null); // 建立这个目录，返回目录路径
+    LibCoverage::_()->doCleanTestDir($class=null);  // 清理这个目录，返回目录路径
     LibCoverage::_()->cleanDirectory($dir);  // 辅助方法，用于删除测试目录等。
 
 ```
