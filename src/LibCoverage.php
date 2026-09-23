@@ -307,8 +307,9 @@ class LibCoverage
     }
     public function doEnd()
     {
+        // 只为给 phpunit 一个断言计数, 免得用户的用例因为"没有断言"被当成 risky
         if (class_exists(Assert::class)) {
-            Assert::assertTrue(true);
+            Assert::assertTrue(true);   // @phpstan-ignore staticMethod.alreadyNarrowedType
         }
         if ($this->isSkip()) {
             return;
@@ -341,8 +342,9 @@ class LibCoverage
         echo "\n\033[42;30m All Done \033[0m Test Done!";
         echo "\nTest Lines: \033[42;30m{$data['lines_tested']}/{$data['lines_total']}({$data['lines_percent']})\033[0m\n";
         echo "\n\n";
+        // 只为给 phpunit 一个断言计数, 免得 support.php 的用例因为"没有断言"被当成 risky
         if (class_exists(Assert::class)) {
-            Assert::assertTrue(true);
+            Assert::assertTrue(true);   // @phpstan-ignore staticMethod.alreadyNarrowedType
         }
     }
     ////
