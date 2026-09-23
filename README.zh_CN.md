@@ -134,17 +134,3 @@ class AppTest extends \PHPUnit\Framework\TestCase
 还有，条件短路会跳过后面的。
 
 还有，被迫全覆盖测试的人为了全覆盖测试，不一定能跑完所有逻辑。
-
-## GroupCoverage
-
-`GroupCoverage` 是 LibCoverage 的附属类， 用于 `dvaknheo/duckcoverage` 包的 `DuckCoverage` 类以组为单位 dump 和报告
-
-有以下公开方法
-```php
-    public static function _($object = null)
-    public function init(array $options, ?object $context = null)
-    public function getCoverage()
-    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
-    public function doEnd(): void
-    public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
-```

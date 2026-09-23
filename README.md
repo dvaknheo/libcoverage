@@ -147,18 +147,3 @@ The code may use `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, and `@codeCo
 Also, conditional short-circuiting may skip subsequent branches.
 
 Also, someone forced to achieve full coverage may not necessarily exercise all logic paths.
-
-## GroupCoverage
-
-`GroupCoverage` is an auxiliary class of LibCoverage, used by the `DuckCoverage` class in the `dvaknheo/duckcoverage` package to dump and report by group.
-
-The following public methods are available:
-
-```php
-    public static function _($object = null)
-    public function init(array $options, ?object $context = null)
-    public function getCoverage()
-    public function doBegin(string $name, string $group, string $path_src,string $path_dump): void
-    public function doEnd(): void
-    public function createReport(array $groups, string $path_src, string $path_dump, string $path_report): array
-```
