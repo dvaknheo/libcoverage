@@ -42,6 +42,17 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::NewProject();
         LibCoverage::Cloze();
 
+        // 模板里的方法名来自反射: 只列本类声明的 public 方法, 继承来的不列
+        $this->assertTemplate(
+            $path.'tests/AppTest.php',
+            ['App::_()->foo();', 'App::_()->bar($a, $b, ...$rest);'],
+            ['inherited']
+        );
+        $this->assertTemplate($path.'tests/AppInterfaceTest.php', ['AppInterface::_()->run();'], []);
+        $this->assertTemplate($path.'tests/AppTraitTest.php', ['AppTrait::_()->traitFoo();'], []);
+        // 源文件载入失败(缺依赖), 不算致命: 模板里不写调用
+        $this->assertTemplate($path.'tests/AppMissingDependencyTest.php', [], ['::_()->']);
+
         LibCoverageProject::_($lp);
         LibCoverage::_($ll);
 
@@ -59,6 +70,21 @@ class LibCoverageTest extends \PHPUnit\Framework\TestCase
         LibCoverage::_($old);
         LibCoverage::End();
         
+    }
+    /**
+     * 检查生成的测试模板: 该有的调用要有, 不该有的不能有
+     * @param array<string> $has
+     * @param array<string> $has_not
+     */
+    protected function assertTemplate($file, array $has, array $has_not)
+    {
+        $data = (string)file_get_contents($file);
+        foreach ($has as $v) {
+            $this->assertStringContainsString($v, $data);
+        }
+        foreach ($has_not as $v) {
+            $this->assertStringNotContainsString($v, $data);
+        }
     }
 }
 class SingletonExObject
@@ -91,9 +117,21 @@ $str=<<<EOT
 <?php
 namespace MyProject;
 
-class App
+abstract class AppBase
+{
+    public function inherited()
+    {
+        var_dump(DATE(DATE_ATOM));
+    }
+}
+
+class App extends AppBase
 {
     public function foo()
+    {
+        var_dump(DATE(DATE_ATOM));
+    }
+    public function bar(\$a, \$b = 1, ...\$rest)
     {
         var_dump(DATE(DATE_ATOM));
     }
@@ -101,6 +139,38 @@ class App
 EOT;
         @mkdir($path.'src');
         file_put_contents($path.'src/App.php',$str);
+$str=<<<EOT
+<?php
+namespace MyProject;
+
+interface AppInterface
+{
+    public function run();
+}
+EOT;
+        file_put_contents($path.'src/AppInterface.php',$str);
+$str=<<<EOT
+<?php
+namespace MyProject;
+
+trait AppTrait
+{
+    public function traitFoo()
+    {
+        var_dump(DATE(DATE_ATOM));
+    }
+}
+EOT;
+        file_put_contents($path.'src/AppTrait.php',$str);
+$str=<<<EOT
+<?php
+namespace MyProject;
+
+class AppMissingDependency extends \MissingVendor\NotInstalled
+{
+}
+EOT;
+        file_put_contents($path.'src/AppMissingDependency.php',$str);
         @mkdir($path.'src/sub');
         file_put_contents($path.'src/sub/emptyfile.txt', DATE(DATE_ATOM));
 

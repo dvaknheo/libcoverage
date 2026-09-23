@@ -402,17 +402,11 @@ class LibCoverage
     }
     protected function makeTest($file, $short_file)
     {
-        $data = file_get_contents($file);
-        preg_match_all('/ function (([^\(]+)\([^\)]*\))/', (string)$data, $m); //TODO use reflection
-        $funcs = $m[1];
-        
         $ns = $this->options['namespace'].'\\'.str_replace('/', '\\', dirname($short_file));
         $ns = str_replace('\.', '', $ns);
-        if (dirname($short_file) == '.') {
-            $namespace = 'tests';
-        }
         $TestClass = basename($short_file, '.php').'Test';
-        $InitClass = basename($short_file, '.php').'';
+        $InitClass = basename($short_file, '.php');
+        $funcs = $this->getMethodCallsByReflection($file, $ns.'\\'.$InitClass);
         
         $ret = "<"."?php \n";
         $ret .= <<<EOT
@@ -432,7 +426,6 @@ class $TestClass extends \PHPUnit\Framework\TestCase
 
 EOT;
         foreach ($funcs as $v) {
-            $v = str_replace(['&','callable '], ['',''], $v);
             $ret .= <<<EOT
         {$InitClass}::_()->$v;
 
@@ -447,6 +440,58 @@ EOT;
 
 EOT;
         return $ret;
+    }
+    /**
+     * 用反射取出模板里要写的方法调用: 只取本类声明的 public 方法, 继承来的不算。
+     * @return array<string>
+     */
+    protected function getMethodCallsByReflection($file, $class)
+    {
+        $ref = $this->reflectClassOfFile($file, $class);
+        if (null === $ref) {
+            return [];
+        }
+        $ret = [];
+        foreach ($ref->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->getDeclaringClass()->getName() !== $ref->getName()) {
+                continue;   // 父类带来的方法, 归父类的测试模板
+            }
+            $ret[] = $this->makeMethodCall($method);
+        }
+        return $ret;
+    }
+    /**
+     * 反射出文件里的类(接口/性状也算)。类没被 autoload 到, 就载入源文件再反射。
+     * @return ?\ReflectionClass<object>
+     */
+    protected function reflectClassOfFile($file, $class)
+    {
+        if (!$this->isReflectable($class) && substr($file, -4) === '.php') {
+            try {
+                include_once $file;
+            } catch (\Throwable $ex) {
+                return null;    //@codeCoverageIgnore 源文件载入失败(缺依赖/语法错), 当没有方法处理
+            }
+        }
+        if (!$this->isReflectable($class)) {
+            return null;        // 文件里没有这个类, 比如 src 目录里的非类文件
+        }
+        return new \ReflectionClass($class);
+    }
+    protected function isReflectable($class)
+    {
+        return class_exists($class) || interface_exists($class) || trait_exists($class);
+    }
+    /**
+     * 生成模板里的调用语句: foo() / bar($a, $b) / baz(...$args)
+     */
+    protected function makeMethodCall(\ReflectionMethod $method)
+    {
+        $args = [];
+        foreach ($method->getParameters() as $parameter) {
+            $args[] = ($parameter->isVariadic() ? '...' : '').'$'.$parameter->getName();
+        }
+        return $method->getName().'('.implode(', ', $args).')';
     }
     protected function make_sub_dir($path_key)
     {
